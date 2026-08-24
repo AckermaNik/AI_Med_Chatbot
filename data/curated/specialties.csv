@@ -1,0 +1,28 @@
+slug,name,description
+general-practice,General Practice,First point of contact for undifferentiated symptoms; refers onward as needed.
+dermatology,Dermatology,Conditions of the skin, hair and nails.
+cardiology,Cardiology,Heart and blood vessel conditions.
+pulmonology,Pulmonology,Lungs and breathing.
+gastroenterology,Gastroenterology,Digestive tract, stomach and bowel.
+hepatology,Hepatology,Liver, gallbladder and bile ducts.
+neurology,Neurology,Brain, spinal cord and nerves.
+psychiatry,Psychiatry,Mental health and behavioural conditions.
+endocrinology,Endocrinology,Hormones, thyroid, diabetes and metabolism.
+rheumatology,Rheumatology,Joints, connective tissue and autoimmune conditions.
+orthopaedics,Orthopaedics,Bones, joints, ligaments and musculoskeletal injury.
+urology,Urology,Urinary tract and male reproductive system.
+nephrology,Nephrology,Kidney function and kidney disease.
+gynaecology,Gynaecology,Female reproductive system.
+ophthalmology,Ophthalmology,Eyes and vision.
+otolaryngology,Otolaryngology (ENT),Ear, nose, throat and sinuses.
+infectious-disease,Infectious Disease,Bacterial, viral, fungal and parasitic infections.
+haematology,Haematology,Blood, bone marrow and clotting disorders.
+oncology,Oncology,Cancer diagnosis and treatment.
+immunology,Allergy and Immunology,Allergies and immune system disorders.
+vascular-surgery,Vascular Surgery,Arteries and veins outside the heart and brain.
+general-surgery,General Surgery,Conditions commonly needing operative management.
+emergency-medicine,Emergency Medicine,Acute conditions needing immediate assessment.
+paediatrics,Paediatrics,Medical care of infants and children.
+dentistry,Dentistry,Teeth, gums and oral health.
+physiotherapy,Physiotherapy,Movement, rehabilitation and musculoskeletal function.
+dietetics,Dietetics and Nutrition,Diet-related conditions and nutritional management.

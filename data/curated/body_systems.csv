@@ -1,0 +1,434 @@
+symptom_slug,symptom_name,body_system
+abdominal-distention,abdominal distention,gastrointestinal
+abdominal-pain,abdominal pain,gastrointestinal
+abnormal-appearing-skin,abnormal appearing skin,ent
+abnormal-breathing-sounds,abnormal breathing sounds,respiratory
+abnormal-involuntary-movements,abnormal involuntary movements,neurological
+abnormal-menstruation,abnormal menstruation,reproductive
+abnormal-movement-of-eyelid,abnormal movement of eyelid,ophthalmic
+absence-of-menstruation,absence of menstruation,reproductive
+abusing-alcohol,abusing alcohol,psychological
+ache-all-over,ache all over,systemic
+acidity,acidity,gastrointestinal
+acne-or-pimples,acne or pimples,skin
+acute-liver-failure,acute liver failure,hepatic
+allergic-reaction,allergic reaction,systemic
+altered-sensorium,altered sensorium,neurological
+ankle-pain,ankle pain,musculoskeletal
+ankle-swelling,ankle swelling,musculoskeletal
+ankle-weakness,ankle weakness,musculoskeletal
+antisocial-behavior,antisocial behavior,psychological
+anxiety,anxiety,psychological
+apnea,apnea,respiratory
+arm-lump-or-mass,arm lump or mass,musculoskeletal
+arm-pain,arm pain,musculoskeletal
+arm-stiffness-or-tightness,arm stiffness or tightness,musculoskeletal
+arm-swelling,arm swelling,musculoskeletal
+arm-weakness,arm weakness,musculoskeletal
+back-cramps-or-spasms,back cramps or spasms,neurological
+back-mass-or-lump,back mass or lump,systemic
+back-pain,back pain,musculoskeletal
+back-stiffness-or-tightness,back stiffness or tightness,musculoskeletal
+back-weakness,back weakness,musculoskeletal
+bedwetting,bedwetting,urinary
+belly-pain,belly pain,gastrointestinal
+blackheads,blackheads,skin
+bladder-discomfort,bladder discomfort,urinary
+bladder-mass,bladder mass,urinary
+bleeding-from-ear,bleeding from ear,ent
+bleeding-from-eye,bleeding from eye,ophthalmic
+bleeding-gums,bleeding gums,systemic
+bleeding-or-discharge-from-nipple,bleeding or discharge from nipple,reproductive
+blindness,blindness,ophthalmic
+blister,blister,skin
+blood-clots-during-menstrual-periods,blood clots during menstrual periods,urinary
+blood-in-sputum,blood in sputum,respiratory
+blood-in-stool,blood in stool,gastrointestinal
+blood-in-urine,blood in urine,urinary
+bloody-stool,bloody stool,gastrointestinal
+blurred-and-distorted-vision,blurred and distorted vision,ophthalmic
+bones-are-painful,bones are painful,musculoskeletal
+bowlegged-or-knock-kneed,bowlegged or knock kneed,musculoskeletal
+breathing-fast,breathing fast,respiratory
+breathlessness,breathlessness,respiratory
+brittle-nails,brittle nails,skin
+bruising,bruising,skin
+bumps-on-penis,bumps on penis,reproductive
+burning-abdominal-pain,burning abdominal pain,gastrointestinal
+burning-chest-pain,burning chest pain,cardiac
+burning-micturition,burning micturition,urinary
+changes-in-stool-appearance,changes in stool appearance,ent
+chest-pain,chest pain,cardiac
+chest-tightness,chest tightness,cardiac
+chills,chills,systemic
+cloudy-eye,cloudy eye,ophthalmic
+cold-hands-and-feets,cold hands and feets,musculoskeletal
+coma,coma,neurological
+congestion,congestion,ent
+congestion-in-chest,congestion in chest,respiratory
+constipation,constipation,gastrointestinal
+continuous-feel-of-urine,continuous feel of urine,urinary
+continuous-sneezing,continuous sneezing,ent
+coryza,coryza,ent
+cough,cough,respiratory
+coughing-up-sputum,coughing up sputum,respiratory
+cramps,cramps,musculoskeletal
+cross-eyed,cross eyed,ophthalmic
+dark-urine,dark urine,urinary
+decreased-appetite,decreased appetite,gastrointestinal
+decreased-heart-rate,decreased heart rate,ent
+dehydration,dehydration,systemic
+delusions-or-hallucinations,delusions or hallucinations,psychological
+depression,depression,psychological
+depressive-or-psychotic-symptoms,depressive or psychotic symptoms,psychological
+diaper-rash,diaper rash,skin
+diarrhea,diarrhea,gastrointestinal
+difficulty-breathing,difficulty breathing,respiratory
+difficulty-eating,difficulty eating,gastrointestinal
+difficulty-in-swallowing,difficulty in swallowing,ent
+difficulty-speaking,difficulty speaking,neurological
+diminished-hearing,diminished hearing,ent
+diminished-vision,diminished vision,ophthalmic
+discoloured-patches,discoloured patches,skin
+distention-of-abdomen,distention of abdomen,gastrointestinal
+disturbance-of-memory,disturbance of memory,neurological
+dizziness,dizziness,neurological
+double-vision,double vision,ophthalmic
+drainage-in-throat,drainage in throat,ent
+drug-abuse,drug abuse,psychological
+drying-and-tingling-lips,drying and tingling lips,neurological
+dry-lips,dry lips,ent
+dry-or-flaky-scalp,dry or flaky scalp,skin
+early-or-late-onset-of-menopause,early or late onset of menopause,ent
+ear-pain,ear pain,ent
+elbow-pain,elbow pain,musculoskeletal
+elbow-swelling,elbow swelling,musculoskeletal
+elbow-weakness,elbow weakness,musculoskeletal
+emotional-symptoms,emotional symptoms,psychological
+enlarged-thyroid,enlarged thyroid,endocrine
+excessive-anger,excessive anger,psychological
+excessive-appetite,excessive appetite,gastrointestinal
+excessive-growth,excessive growth,endocrine
+excessive-hunger,excessive hunger,gastrointestinal
+excessive-urination-at-night,excessive urination at night,urinary
+extra-marital-contacts,extra marital contacts,reproductive
+eye-burns-or-stings,eye burns or stings,ophthalmic
+eye-deviation,eye deviation,ophthalmic
+eyelid-lesion-or-rash,eyelid lesion or rash,ophthalmic
+eyelid-swelling,eyelid swelling,ophthalmic
+eye-moves-abnormally,eye moves abnormally,ophthalmic
+eye-redness,eye redness,ophthalmic
+facial-pain,facial pain,systemic
+fainting,fainting,neurological
+family-history,family history,systemic
+fast-heart-rate,fast heart rate,ent
+fatigue,fatigue,systemic
+fears-and-phobias,fears and phobias,ent
+feeling-cold,feeling cold,systemic
+feeling-hot,feeling hot,systemic
+feeling-ill,feeling ill,systemic
+fever,fever,systemic
+flatulence,flatulence,gastrointestinal
+fluid-in-ear,fluid in ear,ent
+fluid-overload,fluid overload,cardiac
+fluid-retention,fluid retention,cardiac
+flu-like-syndrome,flu like syndrome,systemic
+flushing,flushing,skin
+focal-weakness,focal weakness,musculoskeletal
+foot-or-toe-lump-or-mass,foot or toe lump or mass,musculoskeletal
+foot-or-toe-pain,foot or toe pain,musculoskeletal
+foot-or-toe-stiffness-or-tightness,foot or toe stiffness or tightness,musculoskeletal
+foot-or-toe-swelling,foot or toe swelling,musculoskeletal
+foot-or-toe-weakness,foot or toe weakness,musculoskeletal
+foreign-body-sensation-in-eye,foreign body sensation in eye,ophthalmic
+foul-smell-of-urine,foul smell of urine,ent
+frequent-menstruation,frequent menstruation,reproductive
+frequent-urination,frequent urination,urinary
+frontal-headache,frontal headache,neurological
+groin-mass,groin mass,reproductive
+groin-pain,groin pain,reproductive
+gum-pain,gum pain,systemic
+hand-or-finger-cramps-or-spasms,hand or finger cramps or spasms,neurological
+hand-or-finger-lump-or-mass,hand or finger lump or mass,musculoskeletal
+hand-or-finger-pain,hand or finger pain,musculoskeletal
+hand-or-finger-stiffness-or-tightness,hand or finger stiffness or tightness,musculoskeletal
+hand-or-finger-swelling,hand or finger swelling,musculoskeletal
+hand-or-finger-weakness,hand or finger weakness,musculoskeletal
+headache,headache,neurological
+heartburn,heartburn,ent
+heavy-menstrual-flow,heavy menstrual flow,reproductive
+hemoptysis,hemoptysis,respiratory
+hesitancy,hesitancy,urinary
+high-fever,high fever,systemic
+hip-joint-pain,hip joint pain,musculoskeletal
+hip-stiffness-or-tightness,hip stiffness or tightness,musculoskeletal
+history-of-alcohol-consumption,history of alcohol consumption,systemic
+hoarse-voice,hoarse voice,ent
+hostile-behavior,hostile behavior,psychological
+hot-flashes,hot flashes,endocrine
+hurts-to-breath,hurts to breath,respiratory
+hysterical-behavior,hysterical behavior,psychological
+impotence,impotence,reproductive
+incontinence-of-stool,incontinence of stool,gastrointestinal
+increased-appetite,increased appetite,gastrointestinal
+increased-heart-rate,increased heart rate,ent
+indigestion,indigestion,gastrointestinal
+infant-feeding-problem,infant feeding problem,gastrointestinal
+infant-spitting-up,infant spitting up,gastrointestinal
+infertility,infertility,reproductive
+inflammatory-nails,inflammatory nails,skin
+insomnia,insomnia,psychological
+intermenstrual-bleeding,intermenstrual bleeding,reproductive
+internal-itching,internal itching,skin
+involuntary-urination,involuntary urination,urinary
+irregular-appearing-nails,irregular appearing nails,ent
+irregular-appearing-scalp,irregular appearing scalp,ent
+irregular-belly-button,irregular belly button,gastrointestinal
+irregular-heartbeat,irregular heartbeat,ent
+irregular-sugar-level,irregular sugar level,endocrine
+irritability,irritability,psychological
+irritable-infant,irritable infant,psychological
+irritation-in-anus,irritation in anus,gastrointestinal
+itchiness-of-eye,itchiness of eye,ophthalmic
+itching,itching,skin
+itching-of-scrotum,itching of scrotum,skin
+itching-of-skin,itching of skin,skin
+itching-of-the-anus,itching of the anus,skin
+itchy-ear-s,itchy ear s,ent
+itchy-eyelid,itchy eyelid,ophthalmic
+itchy-scalp,itchy scalp,skin
+jaundice,jaundice,hepatic
+jaw-swelling,jaw swelling,musculoskeletal
+joint-pain,joint pain,musculoskeletal
+kidney-mass,kidney mass,urinary
+knee-lump-or-mass,knee lump or mass,musculoskeletal
+knee-pain,knee pain,musculoskeletal
+knee-stiffness-or-tightness,knee stiffness or tightness,musculoskeletal
+knee-swelling,knee swelling,musculoskeletal
+knee-weakness,knee weakness,musculoskeletal
+lack-of-concentration,lack of concentration,neurological
+lack-of-growth,lack of growth,endocrine
+lacrimation,lacrimation,ophthalmic
+leg-cramps-or-spasms,leg cramps or spasms,neurological
+leg-lump-or-mass,leg lump or mass,musculoskeletal
+leg-pain,leg pain,musculoskeletal
+leg-stiffness-or-tightness,leg stiffness or tightness,musculoskeletal
+leg-swelling,leg swelling,musculoskeletal
+leg-weakness,leg weakness,musculoskeletal
+lethargy,lethargy,systemic
+lip-sore,lip sore,ent
+lip-swelling,lip swelling,musculoskeletal
+long-menstrual-periods,long menstrual periods,reproductive
+loss-of-appetite,loss of appetite,gastrointestinal
+loss-of-balance,loss of balance,neurological
+loss-of-sensation,loss of sensation,neurological
+loss-of-sex-drive,loss of sex drive,reproductive
+loss-of-smell,loss of smell,ent
+low-back-cramps-or-spasms,low back cramps or spasms,neurological
+low-back-pain,low back pain,musculoskeletal
+low-back-weakness,low back weakness,musculoskeletal
+lower-abdominal-pain,lower abdominal pain,gastrointestinal
+lower-body-pain,lower body pain,systemic
+low-self-esteem,low self esteem,psychological
+low-urine-output,low urine output,urinary
+lump-in-throat,lump in throat,ent
+lump-or-mass-of-breast,lump or mass of breast,reproductive
+lymphedema,lymphedema,systemic
+malaise,malaise,systemic
+mass-in-scrotum,mass in scrotum,reproductive
+mass-on-eyelid,mass on eyelid,ophthalmic
+mass-or-swelling-around-the-anus,mass or swelling around the anus,gastrointestinal
+melena,melena,gastrointestinal
+mild-fever,mild fever,systemic
+mood-swings,mood swings,psychological
+mouth-dryness,mouth dryness,ent
+mouth-pain,mouth pain,systemic
+mouth-ulcer,mouth ulcer,ent
+movement-stiffness,movement stiffness,musculoskeletal
+mucoid-sputum,mucoid sputum,respiratory
+muscle-cramps-contractures-or-spasms,muscle cramps contractures or spasms,neurological
+muscle-pain,muscle pain,musculoskeletal
+muscle-stiffness-or-tightness,muscle stiffness or tightness,musculoskeletal
+muscle-swelling,muscle swelling,musculoskeletal
+muscle-wasting,muscle wasting,musculoskeletal
+muscle-weakness,muscle weakness,musculoskeletal
+nasal-congestion,nasal congestion,ent
+nausea,nausea,gastrointestinal
+neck-cramps-or-spasms,neck cramps or spasms,neurological
+neck-mass,neck mass,musculoskeletal
+neck-pain,neck pain,musculoskeletal
+neck-stiffness-or-tightness,neck stiffness or tightness,neurological
+neck-swelling,neck swelling,musculoskeletal
+nightmares,nightmares,psychological
+nodal-skin-eruptions,nodal skin eruptions,skin
+nosebleed,nosebleed,ent
+obesity,obesity,endocrine
+obsessions-and-compulsions,obsessions and compulsions,psychological
+pain-behind-the-eyes,pain behind the eyes,ophthalmic
+pain-during-bowel-movements,pain during bowel movements,gastrointestinal
+pain-during-intercourse,pain during intercourse,urinary
+pain-during-pregnancy,pain during pregnancy,urinary
+painful-menstruation,painful menstruation,reproductive
+painful-sinuses,painful sinuses,ent
+painful-urination,painful urination,urinary
+painful-walking,painful walking,systemic
+pain-in-anal-region,pain in anal region,systemic
+pain-in-eye,pain in eye,ophthalmic
+pain-in-gums,pain in gums,systemic
+pain-in-testicles,pain in testicles,reproductive
+pain-of-the-anus,pain of the anus,gastrointestinal
+pain-or-soreness-of-breast,pain or soreness of breast,reproductive
+palpitations,palpitations,cardiac
+paresthesia,paresthesia,neurological
+passage-of-gases,passage of gases,gastrointestinal
+patches-in-throat,patches in throat,ent
+pelvic-pain,pelvic pain,systemic
+pelvic-pressure,pelvic pressure,reproductive
+penile-discharge,penile discharge,reproductive
+penis-pain,penis pain,reproductive
+penis-redness,penis redness,reproductive
+peripheral-edema,peripheral edema,cardiac
+phlegm,phlegm,respiratory
+plugged-feeling-in-ear,plugged feeling in ear,ent
+polyuria,polyuria,urinary
+poor-circulation,poor circulation,cardiac
+postpartum-problems-of-the-breast,postpartum problems of the breast,reproductive
+premature-ejaculation,premature ejaculation,reproductive
+premenstrual-tension-or-irritability,premenstrual tension or irritability,reproductive
+problems-during-pregnancy,problems during pregnancy,urinary
+problems-with-movement,problems with movement,neurological
+problems-with-shape-or-size-of-breast,problems with shape or size of breast,reproductive
+prominent-veins-on-calf,prominent veins on calf,cardiac
+puffy-face-and-eyes,puffy face and eyes,ophthalmic
+pulling-at-ears,pulling at ears,ent
+pus-draining-from-ear,pus draining from ear,ent
+pus-filled-pimples,pus filled pimples,skin
+receiving-blood-transfusion,receiving blood transfusion,systemic
+receiving-unsterile-injections,receiving unsterile injections,systemic
+recent-pregnancy,recent pregnancy,reproductive
+recent-weight-loss,recent weight loss,endocrine
+rectal-bleeding,rectal bleeding,gastrointestinal
+redness-in-ear,redness in ear,ent
+redness-in-or-around-nose,redness in or around nose,ent
+redness-of-eyes,redness of eyes,ophthalmic
+red-sore-around-nose,red sore around nose,ent
+red-spots-over-body,red spots over body,skin
+regurgitation,regurgitation,gastrointestinal
+regurgitation-1,regurgitation 1,gastrointestinal
+restlessness,restlessness,psychological
+retention-of-urine,retention of urine,urinary
+rib-pain,rib pain,systemic
+ringing-in-ear,ringing in ear,ent
+runny-nose,runny nose,ent
+rusty-sputum,rusty sputum,respiratory
+scanty-menstrual-flow,scanty menstrual flow,reproductive
+scurring,scurring,skin
+seizures,seizures,neurological
+sharp-abdominal-pain,sharp abdominal pain,gastrointestinal
+sharp-chest-pain,sharp chest pain,cardiac
+shivering,shivering,skin
+shortness-of-breath,shortness of breath,respiratory
+shoulder-lump-or-mass,shoulder lump or mass,musculoskeletal
+shoulder-pain,shoulder pain,musculoskeletal
+shoulder-stiffness-or-tightness,shoulder stiffness or tightness,musculoskeletal
+shoulder-swelling,shoulder swelling,musculoskeletal
+shoulder-weakness,shoulder weakness,musculoskeletal
+side-pain,side pain,systemic
+silver-like-dusting,silver like dusting,skin
+sinus-congestion,sinus congestion,ent
+sinus-pressure,sinus pressure,ent
+skin-dryness-peeling-scaliness-or-roughness,skin dryness peeling scaliness or roughness,skin
+skin-growth,skin growth,skin
+skin-irritation,skin irritation,skin
+skin-lesion,skin lesion,skin
+skin-moles,skin moles,skin
+skin-on-arm-or-hand-looks-infected,skin on arm or hand looks infected,skin
+skin-on-leg-or-foot-looks-infected,skin on leg or foot looks infected,skin
+skin-pain,skin pain,skin
+skin-peeling,skin peeling,skin
+skin-rash,skin rash,skin
+skin-swelling,skin swelling,skin
+sleepiness,sleepiness,psychological
+slurred-speech,slurred speech,neurological
+slurring-words,slurring words,neurological
+small-dents-in-nails,small dents in nails,skin
+smoking-problems,smoking problems,respiratory
+sneezing,sneezing,ent
+sore-in-nose,sore in nose,ent
+sore-throat,sore throat,ent
+spinning-movements,spinning movements,ent
+spots-or-clouds-in-vision,spots or clouds in vision,ophthalmic
+spotting-or-bleeding-during-pregnancy,spotting or bleeding during pregnancy,urinary
+spotting-urination,spotting urination,urinary
+stiff-neck,stiff neck,musculoskeletal
+stiffness-all-over,stiffness all over,musculoskeletal
+stomach-bleeding,stomach bleeding,gastrointestinal
+stomach-bloating,stomach bloating,gastrointestinal
+stomach-pain,stomach pain,gastrointestinal
+sunken-eyes,sunken eyes,ophthalmic
+suprapubic-pain,suprapubic pain,systemic
+sweating,sweating,endocrine
+swelling-joints,swelling joints,musculoskeletal
+swelling-of-scrotum,swelling of scrotum,reproductive
+swelling-of-stomach,swelling of stomach,gastrointestinal
+swollen-abdomen,swollen abdomen,gastrointestinal
+swollen-blood-vessels,swollen blood vessels,systemic
+swollen-extremeties,swollen extremeties,systemic
+swollen-eye,swollen eye,ophthalmic
+swollen-legs,swollen legs,musculoskeletal
+swollen-lymph-nodes,swollen lymph nodes,systemic
+swollen-or-red-tonsils,swollen or red tonsils,ent
+symptoms-of-bladder,symptoms of bladder,urinary
+symptoms-of-eye,symptoms of eye,ophthalmic
+symptoms-of-infants,symptoms of infants,systemic
+symptoms-of-prostate,symptoms of prostate,reproductive
+symptoms-of-the-face,symptoms of the face,systemic
+symptoms-of-the-kidneys,symptoms of the kidneys,urinary
+symptoms-of-the-scrotum-and-testes,symptoms of the scrotum and testes,reproductive
+temper-problems,temper problems,psychological
+thirst,thirst,endocrine
+throat-feels-tight,throat feels tight,ent
+throat-irritation,throat irritation,ent
+throat-redness,throat redness,ent
+throat-swelling,throat swelling,ent
+tongue-lesions,tongue lesions,skin
+too-little-hair,too little hair,skin
+toothache,toothache,dental
+toxic-look-typhos,toxic look typhos,systemic
+ulcers-on-tongue,ulcers on tongue,ent
+unpredictable-menstruation,unpredictable menstruation,reproductive
+unsteadiness,unsteadiness,neurological
+unusual-color-or-odor-to-urine,unusual color or odor to urine,urinary
+unwanted-hair,unwanted hair,skin
+upper-abdominal-pain,upper abdominal pain,gastrointestinal
+uterine-contractions,uterine contractions,reproductive
+vaginal-bleeding-after-menopause,vaginal bleeding after menopause,reproductive
+vaginal-discharge,vaginal discharge,reproductive
+vaginal-dryness,vaginal dryness,reproductive
+vaginal-itching,vaginal itching,skin
+vaginal-pain,vaginal pain,reproductive
+vaginal-redness,vaginal redness,reproductive
+visual-disturbances,visual disturbances,ophthalmic
+vomiting,vomiting,gastrointestinal
+vomiting-blood,vomiting blood,gastrointestinal
+vulvar-irritation,vulvar irritation,reproductive
+vulvar-sore,vulvar sore,reproductive
+warts,warts,skin
+watering-from-eyes,watering from eyes,ophthalmic
+weakness,weakness,musculoskeletal
+weakness-in-limbs,weakness in limbs,musculoskeletal
+weakness-of-one-body-side,weakness of one body side,musculoskeletal
+weight-gain,weight gain,endocrine
+weight-loss,weight loss,endocrine
+wheezing,wheezing,respiratory
+white-discharge-from-eye,white discharge from eye,ophthalmic
+wrinkles-on-skin,wrinkles on skin,skin
+wrist-lump-or-mass,wrist lump or mass,musculoskeletal
+wrist-pain,wrist pain,musculoskeletal
+wrist-stiffness-or-tightness,wrist stiffness or tightness,musculoskeletal
+wrist-swelling,wrist swelling,musculoskeletal
+wrist-weakness,wrist weakness,musculoskeletal
+yellow-crust-ooze,yellow crust ooze,hepatic
+yellowing-of-eyes,yellowing of eyes,ophthalmic
+yellowish-skin,yellowish skin,skin
+yellow-urine,yellow urine,hepatic

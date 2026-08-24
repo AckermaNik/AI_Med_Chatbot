@@ -1,0 +1,44 @@
+
+# It defines how to set up and run a PostgreSQL database container 
+# that comes pre-packaged with the pgvector extension 
+# (which is commonly used for AI applications to store and search vector embeddings)
+
+
+# Service Configuration / Container Identity & Behavior
+
+services: # defines all the different containers (services) you want to run.
+  db: # Other containers in this file (like frontend) would use db as the hostname to connect to this database
+    # pgvector/pgvector ships the `vector` extension preinstalled.
+    # Plain `postgres:16` does NOT — CREATE EXTENSION vector would fail.
+    image: pgvector/pgvector:pg16
+    container_name: medai_db
+    restart: unless-stopped # It will only stay off if you manually tell it to stop
+
+  # Database Credentials
+
+    environment:
+      POSTGRES_USER: medai
+      POSTGRES_PASSWORD: medai
+      POSTGRES_DB: medai
+    ports:
+      # 5433 on the host, so a local copy of PostgreSQL running on the machine (which uses 5432) won't crash into each other.
+      - "5433:5432"
+
+  # Storage & Setup
+
+    volumes: # Volumes handle data persistence and file sharing between your computer and the container
+      - pgdata:/var/lib/postgresql/data # This line maps the database's internal storage directory to a safe, permanent space managed by Docke
+      - ./backend/db/init:/docker-entrypoint-initdb.d:ro 
+
+  # tells Docker how to verify if the database is actually ready to process data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U medai -d medai"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+
+# You have to declare it at the root level 
+# so Docker knows to allocate that permanent storage space for your project
+
+volumes:
+  pgdata:

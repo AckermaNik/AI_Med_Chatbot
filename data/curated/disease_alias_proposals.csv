@@ -1,0 +1,23 @@
+canonical,alias,verdict,reason,ratio,override
+typhoid,typhoid fever,merge,trailing qualifier (fever) - semantic no-op,70,yes
+dengue,dengue fever,merge,trailing qualifier (fever) - semantic no-op,67,yes
+gastroenteritis,infectious gastroenteritis,reject,leading modifier (infectious) - distinct condition,73,
+fungal infection,fungal infection of the hair,reject,prepositional qualifier (of the hair) - names a site or cause,73,
+fungal infection,fungal infection of the skin,reject,prepositional qualifier (of the skin) - names a site or cause,73,
+arthritis,septic arthritis,reject,leading modifier (septic) - distinct condition,72,
+cervical spondylosis,spondylosis,reject,leading modifier (cervical) - distinct condition,71,
+hypertension,malignant hypertension,reject,leading modifier (malignant) - distinct condition,71,
+hypertension,pulmonary hypertension,reject,leading modifier (pulmonary) - distinct condition,71,
+hepatitis a,viral hepatitis,reject,human decision: hepatitis A is one specific virus; 'viral hepatitis' is the parent class covering A/B/C/D/E - a specific diagnosis must not absorb its category,69,
+gastroenteritis,noninfectious gastroenteritis,reject,leading modifier (noninfectious) - distinct condition,68,
+arthritis,reactive arthritis,reject,leading modifier (reactive) - distinct condition,67,
+hypertension,hypertension of pregnancy,reject,prepositional qualifier (of pregnancy) - names a site or cause,65,
+jaundice,neonatal jaundice,reject,leading modifier (neonatal) - distinct condition,64,
+hepatitis a,hepatitis due to a toxin,reject,prepositional qualifier (due to toxin) - names a site or cause,63,
+arthritis,arthritis of the hip,reject,prepositional qualifier (of the hip) - names a site or cause,62,
+arthritis,rheumatoid arthritis,reject,leading modifier (rheumatoid) - distinct condition,62,
+dimorphic hemorrhoids piles,hemorrhoids,reject,leading modifier (dimorphic) - distinct condition,58,
+bronchial asthma,asthma,reject,leading modifier (bronchial) - distinct condition,55,
+arthritis,juvenile rheumatoid arthritis,reject,leading modifier (juvenile rheumatoid) - distinct condition,47,
+hypertension,kidney disease due to longstanding hypertension,reject,leading modifier (kidney disease due to longstanding) - distinct condition,41,
+gerd,gastroesophageal reflux disease gerd,reject,leading modifier (gastroesophageal reflux disease) - distinct condition,20,yes

@@ -1,0 +1,37 @@
+canonical,alias,verdict,reason,ratio,override
+hip joint pain,hip pain,merge,trailing qualifier (joint) - semantic no-op,73,yes
+swelling joints,joint swelling,merge,"same tokens, different order",55,yes
+cramps,cramps and spasms,merge,trailing qualifier (and spasms) - semantic no-op,52,yes
+anxiety,anxiety and nervousness,merge,trailing qualifier (and nervousness) - semantic no-op,47,yes
+excessive hunger,excessive anger,reject,different head noun (hunger vs anger),90,
+increased appetite,decreased appetite,reject,polarity opposite (increased vs decreased),89,
+abdominal pain,lower abdominal pain,reject,leading modifier (lower) - distinct condition,82,yes
+abdominal pain,sharp abdominal pain,reject,leading modifier (sharp) - distinct condition,82,yes
+abdominal pain,upper abdominal pain,reject,leading modifier (upper) - distinct condition,82,yes
+abdominal pain,burning abdominal pain,reject,leading modifier (burning) - distinct condition,78,yes
+congestion,nasal congestion,reject,leading modifier (nasal) - distinct condition,77,
+chest pain,sharp chest pain,reject,leading modifier (sharp) - distinct condition,77,yes
+congestion,sinus congestion,reject,leading modifier (sinus) - distinct condition,77,
+weight loss,recent weight loss,reject,leading modifier (recent) - distinct condition,76,yes
+chest pain,burning chest pain,reject,leading modifier (burning) - distinct condition,71,
+congestion,congestion in chest,reject,prepositional qualifier (in chest) - names a site or cause,69,
+high fever,fever,reject,leading modifier (high) - distinct condition,67,yes
+weakness in limbs,weakness,reject,prepositional qualifier (in limbs) - names a site or cause,64,yes
+itching,itching of skin,reject,prepositional qualifier (of skin) - names a site or cause,64,yes
+itching,vaginal itching,reject,leading modifier (vaginal) - distinct condition,64,
+continuous sneezing,sneezing,reject,leading modifier (continuous) - distinct condition,59,yes
+itching,itching of scrotum,reject,prepositional qualifier (of scrotum) - names a site or cause,56,
+itching,itching of the anus,reject,prepositional qualifier (of the anus) - names a site or cause,54,
+irritability,premenstrual tension or irritability,reject,leading modifier (premenstrual tension or) - distinct condition,50,
+cramps,arm cramps or spasms,reject,leading modifier (arm) - distinct condition,46,
+cramps,leg cramps or spasms,reject,leading modifier (leg) - distinct condition,46,
+cramps,back cramps or spasms,reject,leading modifier (back) - distinct condition,44,
+cramps,knee cramps or spasms,reject,leading modifier (knee) - distinct condition,44,
+cramps,neck cramps or spasms,reject,leading modifier (neck) - distinct condition,44,
+skin peeling,skin dryness peeling scaliness or roughness,reject,"human decision: B's column bundles four distinct findings; collapsing it into 'peeling' would silently discard dryness, scaliness and roughness",44,
+cramps,elbow cramps or spasms,reject,leading modifier (elbow) - distinct condition,43,
+cramps,low back cramps or spasms,reject,leading modifier (low back) - distinct condition,39,
+cramps,shoulder cramps or spasms,reject,leading modifier (shoulder) - distinct condition,39,
+cramps,foot or toe cramps or spasms,reject,leading modifier (foot or toe) - distinct condition,35,
+cramps,hand or finger cramps or spasms,reject,leading modifier (hand or finger) - distinct condition,32,
+cramps,muscle cramps contractures or spasms,reject,leading modifier (muscle) - distinct condition,29,

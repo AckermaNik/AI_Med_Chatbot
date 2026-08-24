@@ -1,0 +1,16 @@
+body_system,specialty_slug
+skin,dermatology
+cardiac,cardiology
+respiratory,pulmonology
+gastrointestinal,gastroenterology
+hepatic,hepatology
+neurological,neurology
+psychological,psychiatry
+endocrine,endocrinology
+musculoskeletal,rheumatology
+urinary,urology
+reproductive,gynaecology
+ophthalmic,ophthalmology
+ent,otolaryngology
+dental,dentistry
+systemic,general-practice

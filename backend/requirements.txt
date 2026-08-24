@@ -1,0 +1,30 @@
+# --- web ---
+fastapi>=0.115
+uvicorn[standard]>=0.32
+pydantic>=2.9
+pydantic-settings>=2.6
+
+# --- database ---
+sqlalchemy[asyncio]>=2.0.36
+asyncpg>=0.30
+alembic>=1.14
+pgvector>=0.3.6
+
+# --- llm ---
+google-genai>=2.14
+
+# --- embeddings (ONNX runtime, no torch) ---
+fastembed>=0.5
+
+# --- etl ---
+pandas>=2.2
+rapidfuzz>=3.10
+kaggle>=1.6
+
+# --- misc ---
+python-dotenv>=1.0
+httpx>=0.28
+
+# --- tests / evals ---
+pytest>=8.3
+pytest-asyncio>=0.24
