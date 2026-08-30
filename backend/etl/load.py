@@ -41,8 +41,8 @@ from etl.normalize import (  # noqa: E402
     symptom_vocabulary,
 )
 
-CORE = RAW_DIR / "core"
-BROAD = RAW_DIR / "broad" / "Final_Augmented_dataset_Diseases_and_Symptoms.csv"
+CORE = RAW_DIR / "core" # Database A 
+BROAD = RAW_DIR / "broad" / "Final_Augmented_dataset_Diseases_and_Symptoms.csv" # Database B
 
 
 class QualityGateError(RuntimeError):
@@ -67,11 +67,11 @@ class Assembled:
 
 
 def build_alias_map(kind: str) -> dict[str, str]:
-    """alias -> canonical, for every pair the rules said to merge."""
-    vocab = reconcile(symptom_vocabulary() if kind == "symptom" else disease_vocabulary())
+    """alias -> canonical, for every pair in the database the rules said to merge.""" 
+    vocab = reconcile(symptom_vocabulary() if kind == "symptom" else disease_vocabulary()) # makes a proposal for pairs
     out: dict[str, str] = {}
     for p in vocab.proposals:
-        verdict, _ = classify(p.canonical, p.alias)
+        verdict, _ = classify(p.canonical, p.alias) # decide if they are identical in meaning
         if verdict == "merge":
             out[p.alias] = p.canonical
     return out
@@ -154,11 +154,11 @@ def assemble_broad(
     header = pd.read_csv(BROAD, nrows=0)
     label_col = header.columns[0]
     sym_cols = list(header.columns[1:])
-    dtypes = dict.fromkeys(sym_cols, "int8")
+    dtypes = dict.fromkeys(sym_cols, "int8") # save a massive amount of computer memory (RAM)
 
     df = pd.read_csv(BROAD, dtype=dtypes)
 
-    counts = df.groupby(label_col)[sym_cols].sum() # groups by disease and adds up all the 1s in every symptom column.
+    counts = df.groupby(label_col)[sym_cols].sum() # groups by disease and adds up vertically all the 1s in every symptom column.
     sizes = df.groupby(label_col).size() # groups the rows by disease and counts how many rows exist for each.
     support = counts.div(sizes, axis=0) # massive 2D matrix
 
@@ -264,7 +264,7 @@ def summarize(a: Assembled) -> None:
 
 
 # --------------------------------------------------------------------------- #
-# write
+# writes to the database
 # --------------------------------------------------------------------------- #
 
 

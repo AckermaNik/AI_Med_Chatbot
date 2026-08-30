@@ -139,9 +139,9 @@ def classify(a: str, b: str) -> tuple[str, str]:
     # --- rule 1a: polarity swap --------------------------------------------
     # Same length, differing in exactly one position, and the two differing
     # words sit on opposite ends of the same axis.
-    if len(wa) == len(wb):
-        diffs = [(x, y) for x, y in zip(wa, wb) if x != y]
-        if len(diffs) == 1:
+    if len(wa) == len(wb): # it checks if the phrases have the exact same number of words
+        diffs = [(x, y) for x, y in zip(wa, wb) if x != y] # It pairs the words up side-by-side and only keeps the pairs that do not match
+        if len(diffs) == 1: # checks if there is exactly one difference between the two phrases.
             x, y = diffs[0]
             px, py = POLARITY.get(x), POLARITY.get(y)
             if px and py and px != py and px.split(":")[0] == py.split(":")[0]:
@@ -154,21 +154,19 @@ def classify(a: str, b: str) -> tuple[str, str]:
 
     # --- rule 1c: same words, different order ------------------------------
     # 'swelling joints' vs 'joint swelling'. Word order carries no meaning here.
-    # Compared on crude singular stems so plural mismatches ('joints' vs 'joint')
-    # do not defeat the rule.
+    # Turn prular words to singular ('joints' vs 'joint')
     stem = lambda ws: {w[:-1] if len(w) > 3 and w.endswith("s") else w for w in ws}  # noqa: E731
     if sa == sb or stem(sa) == stem(sb):
         return "merge", "same tokens, different order"
 
     # --- rule 2: modifier position -----------------------------------------
     shorter, longer = (wa, wb) if len(wa) < len(wb) else (wb, wa)
-    if set(shorter) < set(longer):
-        head = shorter[0]
-        first_shared = longer.index(head) if head in longer else 0
-        extra_before = longer[:first_shared]
-        extra_after = [w for w in longer[first_shared:] if w not in set(shorter)]
+    if set(shorter) < set(longer): # Are all the words in the shorter list perfectly contained inside the longer list
+        head = shorter[0] # It grabs the very first word of the short phrase
+        first_shared = longer.index(head) if head in longer else 0 # What position is the word head in longer phrase
+        extra_before = longer[:first_shared] # creates a list of any words that appeared before that anchor point
+        extra_after = [w for w in longer[first_shared:] if w not in set(shorter)] # slices off anything that came before the shared anchor word and is not in the shorter phrase
 
-        # Anything qualifying the term from the left narrows it to a subtype or a
         # body site: 'lower abdominal pain', 'septic arthritis', 'arm cramps'.
         if extra_before:
             return (
@@ -182,6 +180,7 @@ def classify(a: str, b: str) -> tuple[str, str]:
                 f"prepositional qualifier ({' '.join(extra_after)}) - names a site or cause",
             )
 
+        # example: muscle pain symptom
         if extra_after:
             return "merge", f"trailing qualifier ({' '.join(extra_after)}) - semantic no-op"
 
@@ -199,7 +198,7 @@ class Proposal:
 
     `relation` is the important field. SUBSET means one name's words are wholly
     contained in the other ('hypertension' inside 'malignant hypertension'), which
-    token_set_ratio always scores 100 regardless of whether the pair is a synonym
+    token_set and ratio always scores 100 regardless of whether the pair is a synonym
     or a distinct subtype. Those two cases are indistinguishable by string metrics
     and require medical judgement, so they are surfaced separately rather than
     buried among genuine spelling variants.
@@ -207,22 +206,28 @@ class Proposal:
 
     canonical: str
     alias: str
-    token_set: float
-    ratio: float
-    relation: str  # 'subset' | 'variant'
+    token_set: float #  Fuzzy match score (0-100) that ignores word order ("blood pressure" vs "pressure blood" = 100)
+    ratio: float # Strict fuzzy match score (0-100) based on exact character order and typos
+    relation: str  # 'subset' if all words in the shorter string exist in the longer one, otherwise 'variant'
     verdict: str = "review"  # 'merge' | 'reject' | 'review'
     reason: str = ""
 
 
 @dataclass
 class Vocabulary:
-    """A reconciled name space: canonical names plus the aliases folded into them."""
+    """A reconciled name space: canonical names plus the aliases folded into them.
+    
+                        WE ONLY CARE ABOUT THE DISTINCT NAMES
+    """
 
-    kind: str
-    from_a: set[str] = field(default_factory=set)
-    from_b: set[str] = field(default_factory=set)
+    kind: str # symptom or disease
+    from_a: set[str] = field(default_factory=set) # Set containing every unique name found in Dataset A (the core Kaggle dataset)
+    from_b: set[str] = field(default_factory=set) # Set containing every unique name found in Dataset B (the broad Kaggle dataset)
 
+    # Names that were spelled exactly the same in both datasets (no rules needed to merge these)
     exact_overlap: set[str] = field(default_factory=set)
+    
+    # A list holding all the fuzzy `Proposal` objects that need to be run through the classification rules
     proposals: list[Proposal] = field(default_factory=list)
 
     @property
@@ -277,30 +282,33 @@ def disease_vocabulary() -> Vocabulary:
 
 
 # --------------------------------------------------------------------------- #
-# reconciliation
+# reconciliation -> figure out which symptoms in Dataset B are actually just typos 
+# or alternate spellings of the symptoms in Dataset A.
 # --------------------------------------------------------------------------- #
 
 
 def reconcile(vocab: Vocabulary) -> Vocabulary:
     """Stage 1 (exact) then stage 2 (fuzzy proposals) over the non-overlapping names."""
-    vocab.exact_overlap = vocab.from_a & vocab.from_b
+    vocab.exact_overlap = vocab.from_a & vocab.from_b # Set Intersection
 
     candidates = sorted(vocab.b_only)
-    targets = sorted(vocab.a_only)
+    targets = sorted(vocab.a_only) # these are the official names we want to keep
     if not candidates or not targets:
         return vocab
 
+    # For every candidate in Dataset B, search Dataset A for the closest match. 
     for candidate in candidates:
         hit = process.extractOne(
             candidate, targets, scorer=fuzz.token_set_ratio, score_cutoff=FUZZY_THRESHOLD
         )
         if not hit:
             continue
-        match, token_set, _ = hit
+        match, token_set, _ = hit # match -> the actual string from the targets list (Dataset A)
 
         a_words, b_words = set(match.split()), set(candidate.split())
         relation = "subset" if (a_words <= b_words or b_words <= a_words) else "variant"
-        verdict, reason = classify(match, candidate)
+        
+        verdict, reason = classify(match, candidate) # decide if the two words mean the same thing
 
         vocab.proposals.append(
             Proposal(
@@ -316,7 +324,7 @@ def reconcile(vocab: Vocabulary) -> Vocabulary:
 
     # Anything still needing a human first, then merges, then rejects.
     order = {"review": 0, "merge": 1, "reject": 2}
-    vocab.proposals.sort(key=lambda p: (order[p.verdict], -p.ratio))
+    vocab.proposals.sort(key=lambda p: (order[p.verdict], -p.ratio)) # sorts the entire list of proposals so that everything flagged for "review" goes to the very top
     return vocab
 
 

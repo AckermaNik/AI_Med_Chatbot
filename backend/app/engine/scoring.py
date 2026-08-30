@@ -5,20 +5,21 @@ Everything here is a pure function over plain data structures, which is why it c
 be unit-tested exhaustively without Postgres running. The repository layer is
 responsible for turning database rows into the inputs below.
 
-    u (User Symptoms):      The list of symptoms the user reported having (e.g., "itching", "skin rash").
+    u (User Symptoms):    The list of symptoms the user reported having (e.g., "itching", "skin rash").
     S(d) (Disease Symptoms):    The list of symptoms a specific disease is known to cause.
-    IDF (Inverse Document Frequency):       The rarity score of a symptom. A common symptom like fatigue has a low IDF (e.g., 0.5)
-    Support:        A probability score of how strongly a disease is linked to a symptom.
+    IDF (Inverse Document Frequency):    The rarity score of a symptom. A common symptom like fatigue has a low IDF (e.g., 0.5)
+    Support:    A probability score of how strongly a disease is linked to a symptom.
     
     GOAL: calculate a final score (between 0 and 1) for every possible disease.
 
-        score(d) = num(d) / (norm_u · √(D(d) + μ))          ∈ [0, 1]
+        score(d) = num(d) / (norm_u · √(D(d) + μ))  ∈ [0, 1] like cosine-similarity
 
         WHERE: 
         num(d)   = Σ_{s ∈ u ∩ S(d)} idf(s) · support(d, s) -> match on a rare symptom jumps THE score massively.
         norm_u   = √( Σ_{s ∈ u} idf(s) ) -> Penalizes if user reported a bunch of symptoms the disease doesn't explain.
         D(d)     = Σ_{s ∈ S(d)} idf(s) · support(d, s) -> Penalizes if the disease causes highly specific symptoms that the user didn't mention.
         μ (mu)   = Penalty that stops thinly-documented diseases scoring 1.00 off a single common symptom with user.
+        
         mmr (Maximal Marginal Relevance)  = Aacts as a diversity filter. After scoring the diseases and choosing the 20 most fitted ones, it penalizes candidates that are too similar to the ones already chosen.
     
     NUMERATOR -> The Match at the symptoms the user and the disease share.

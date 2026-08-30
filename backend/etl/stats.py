@@ -36,11 +36,12 @@ async def main() -> int:
             print("no diseases loaded - run etl/load.py first")
             return 1
 
+        # calculates the IDF (Inverse Document Frequency)
         await session.execute(
             text(
                 """
                 UPDATE symptom s
-                -- CAST(), not :n::float - text() would read ':n:' as a bind name.
+                -- CAST(), not :n::float - text() would read ':n:' as a variable name.
                 SET idf = ln(CAST(:n AS float) / sub.cnt)
                 FROM (
                     SELECT symptom_id, count(DISTINCT disease_id) AS cnt
@@ -53,6 +54,8 @@ async def main() -> int:
             {"n": n_diseases},
         )
 
+
+        # It counts exactly how many symptoms each disease has and flags it as low_evidence if needed to.
         await session.execute(
             text(
                 """

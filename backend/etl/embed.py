@@ -49,7 +49,7 @@ async def main() -> int:
 
         model = TextEmbedding(model_name=settings.embedding_model)
         names = [name for _, name in rows]
-        vectors = list(model.embed(names, batch_size=BATCH))
+        vectors = list(model.embed(names, batch_size=BATCH)) # It gathers all the generated vectors of 384-dim into one giant, ordered Python list
 
         dim = len(vectors[0])
         if dim != settings.embedding_dim:
@@ -57,7 +57,7 @@ async def main() -> int:
                   f"{settings.embedding_dim}. Nothing written.")
             return 1
 
-        for (symptom_id, _), vector in zip(rows, vectors):
+        for (symptom_id, _), vector in zip(rows, vectors): # It takes the first item from the rows list and locks it to the first item in the vectors list and so on...
             await session.execute(
                 update(Symptom)
                 .where(Symptom.id == symptom_id)
