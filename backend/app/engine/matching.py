@@ -102,7 +102,7 @@ async def _trigram(
                 LEFT JOIN symptom_alias a ON a.symptom_id = s.id
                 -- The % operator is what uses the GIN index. Calling similarity()
                 -- in the WHERE clause instead would scan every row to compute each score and find the best one.
-                WHERE s.canonical_name %% :q OR a.alias %% :q
+                WHERE s.canonical_name % :q OR a.alias % :q
                 GROUP BY s.id, s.slug, s.canonical_name
                 ORDER BY score DESC
                 LIMIT 1

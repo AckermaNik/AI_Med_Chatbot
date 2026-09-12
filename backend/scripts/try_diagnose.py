@@ -1,7 +1,7 @@
 """Drive the scoring engine against the real database from the command line.
 
     python scripts/try_diagnose.py itching skin-rash
-    python scripts/try_diagnose.py headache vomiting --mu 0.5 --lambda 1.0
+    backend/.venv/Scripts/python.exe backend/scripts/try_diagnose.py headache vomiting --mu 0.5 --lambda 1.0
 
 Slugs, not free text — symptom matching (stages 1-3) is a separate concern and
 does not exist yet. This is here to sanity-check ranking against 793 real

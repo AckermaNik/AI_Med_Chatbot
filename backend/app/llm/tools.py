@@ -238,8 +238,6 @@ async def dispatch(session: AsyncSession, name: str, args: dict) -> dict:
 
 def tool_config() -> types.GenerateContentConfig:
     
-
-    settings = get_settings()
     return types.GenerateContentConfig(
         system_instruction=SYSTEM_PROMPT,
         tools=[types.Tool(function_declarations=declarations())],

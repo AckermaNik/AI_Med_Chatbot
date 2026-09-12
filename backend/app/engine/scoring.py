@@ -20,11 +20,10 @@ responsible for turning database rows into the inputs below.
         D(d)     = Σ_{s ∈ S(d)} idf(s) · support(d, s) -> Penalizes if the disease causes highly specific symptoms that the user didn't mention.
         μ (mu)   = Penalty that stops thinly-documented diseases scoring 1.00 off a single common symptom with user.
         
-        mmr (Maximal Marginal Relevance)  = Aacts as a diversity filter. After scoring the diseases and choosing the 20 most fitted ones, it penalizes candidates that are too similar to the ones already chosen.
+        mmr (Maximal Marginal Relevance)  = Acts as a diversity filter. After scoring the diseases and choosing the 20 most fitted ones, it penalizes candidates that are too similar to the ones already chosen.
     
     NUMERATOR -> The Match at the symptoms the user and the disease share.
     DENOMINATOR -> The Reality Check. If we only looked at the match, a disease with 500 symptoms (like the common cold) would match everything. 
-    
 """
 
 from __future__ import annotations
@@ -39,31 +38,31 @@ from app.config import ScoringConfig
 class SymptomInfo:
     """Everything ranking needs to know about one symptom."""
 
-    id: int
-    slug: str
-    name: str
-    idf: float
-    severity: int | None = None
-    body_system: str | None = None
+    id: int                       # The unique database ID for the symptom
+    slug: str                     # The URL-friendly string (e.g., "stomach-pain")
+    name: str                     # The human-readable name (e.g., "Stomach Pain")
+    idf: float                    # Inverse Document Frequency (higher = rarer symptom)
+    severity: int | None = None   # How dangerous it is (usually 1-10) for UI urgency flags
+    body_system: str | None = None # The anatomical category (e.g., "digestive")
 
 
 @dataclass(frozen=True)
 class DiseaseProfile:
     """One disease and its symptom support distribution."""
 
-    id: int
-    slug: str
-    name: str
-    support: dict[int, float]  # symptom_id -> P(symptom | disease)
-    low_evidence: bool = False
+    id: int                       # The unique database ID for the disease
+    slug: str                     # The URL-friendly string (e.g., "common-cold")
+    name: str                     # The human-readable name (e.g., "Common Cold")
+    support: dict[int, float]     # symptom_id -> Probability the disease causes it (0.0 to 1.0)
+    low_evidence: bool = False    # True if the database barely has any data on this disease
 
 
 @dataclass(frozen=True)
 class MatchedSymptom:
-    slug: str
-    name: str
-    idf: float
-    support: float
+    slug: str                     # The URL-friendly string of the symptom
+    name: str                     # The human-readable name of the symptom
+    idf: float                    # The rarity score of this specific symptom
+    support: float                # How strongly the disease is linked to this symptom
 
     @property
     def contribution(self) -> float:
@@ -73,32 +72,32 @@ class MatchedSymptom:
 
 @dataclass
 class Candidate:
-    disease_id: int
-    slug: str
-    name: str
-    score: float
-    matched: list[MatchedSymptom] = field(default_factory=list)
-    missing_key: list[str] = field(default_factory=list)
-    urgency: int | None = None
-    low_evidence: bool = False
+    disease_id: int               # The database ID of the matched disease
+    slug: str                     # The URL-friendly string of the disease
+    name: str                     # The human-readable name of the disease
+    score: float                  # The final calculated match score (0.0 to 1.0)
+    matched: list[MatchedSymptom] = field(default_factory=list)  # The specific symptoms the user and disease share
+    missing_key: list[str] = field(default_factory=list)         # Top rare symptoms the disease normally causes, but the user didn't have
+    urgency: int | None = None    # The maximum severity score out of the matched symptoms
+    low_evidence: bool = False    # Flag to warn the UI if this is a poorly documented disease
 
 
 @dataclass
 class Ranking:
-    candidates: list[Candidate]
-    discriminating_symptom: str | None = None
-    unmatched_reported: list[str] = field(default_factory=list)
+    candidates: list[Candidate]   # The final, sorted, MMR-filtered list of diseases to show the user
+    discriminating_symptom: str | None = None  # The slug of the single best symptom to ask the user about NEXT
+    unmatched_reported: list[str] = field(default_factory=list) # Symptoms the user typed that don't match ANY of the top candidates
 
     @property
     def is_confident(self) -> bool:
-        """True when the leader is clear enough to stop asking questions."""
+        """True when the llm is clear enough to stop asking questions."""
         if not self.candidates:
             return False
         if len(self.candidates) == 1:
             return True
         return (self.candidates[0].score - self.candidates[1].score) >= self._margin
 
-    _margin: float = 0.15
+    _margin: float = 0.15         # !! The score gap needed between #1 and #2 to trigger is_confident
 
 
 # --------------------------------------------------------------------------- #
@@ -107,7 +106,11 @@ class Ranking:
 
 
 def _evidence_mass(profile: DiseaseProfile, symptoms: dict[int, SymptomInfo]) -> float:
-    """D(d) — total IDF-weighted evidence this disease is expected to present."""
+    """It takes a specific disease profile and the global dictionary of all symptoms.
+    It computes D(d) from the formula: the total expected evidence for this disease by summing up 
+    the (IDF * support) of every single symptom this disease is known to cause.
+    It returns a float representing the total "weight" of this disease's expected symptom profile.
+    """
     return sum(
         symptoms[sid].idf * support
         for sid, support in profile.support.items()
@@ -122,6 +125,12 @@ def score_one(
     norm_u: float,
     mu: float,
 ) -> float:
+    """It takes the set of user symptoms, a single disease profile, the global symptom dictionary, 
+    the user's penalty score (), and a baseline penalty (mu).
+    It computes the core cosine-like similarity score. It calculates the numerator (the overlapping match) 
+    and divides it by the denominator (the reality check penalty combining norm_u and the disease's evidence mass).
+    It returns a final float score between 0.0 and 1.0 for this specific disease.
+    """
     numerator = sum(
         symptoms[sid].idf * profile.support[sid]
         for sid in reported & profile.support.keys()
@@ -132,14 +141,26 @@ def score_one(
     denominator = norm_u * math.sqrt(_evidence_mass(profile, symptoms) + mu)
     return numerator / denominator if denominator > 0 else 0.0
 
+#################################################
+#
+# THE BRAIN OF THE SCORING COMPUTATION !!!!!!!
+#
+##################################################
+
 
 def rank(
-    reported: set[int],
-    profiles: list[DiseaseProfile],
-    symptoms: dict[int, SymptomInfo],
+    reported: set[int], # user reported symptoms
+    profiles: list[DiseaseProfile], # diseases that match
+    symptoms: dict[int, SymptomInfo], # all the symptoms
     config: ScoringConfig,
 ) -> Ranking:
-    """Score, pool, MMR re-rank, then pick the next question."""
+    """It takes the user's reported symptom IDs, every matched disease profile, the global symptom dictionary, 
+    and the engine's configuration settings.
+    It computes the entire ranking pipeline: calculates the user's norm penalty, scores every disease, 
+    sorts them, grabs the top pool, applies MMR to filter out redundant diseases, packages them into UI Candidates, 
+    and calculates the next best question to ask.
+    It returns a fully populated Ranking object containing the top candidates and the next question.
+    """
     known = {sid for sid in reported if sid in symptoms}
     if not known:
         return Ranking(candidates=[])
@@ -153,7 +174,7 @@ def rank(
             scored.append((s, profile))
 
     scored.sort(key=lambda pair: (-pair[0], pair[1].name))
-    pool = scored[: config.mmr_pool]
+    pool = scored[: config.mmr_pool] # 20 samples
 
     selected = _mmr(pool, symptoms, config)
 
@@ -170,7 +191,9 @@ def rank(
         ),
     )
     ranking._margin = config.confident_margin
-    ranking.discriminating_symptom = discriminating_symptom(
+    
+    # returns the slug of the chosen symptom for a follow up quaestion or None if no good question exists.
+    ranking.discriminating_symptom = discriminating_symptom( 
         candidates, selected, known, symptoms
     )
     return ranking
@@ -182,7 +205,12 @@ def _explain(
     reported: set[int],
     symptoms: dict[int, SymptomInfo],
 ) -> Candidate:
-    matched = [
+    """It takes the raw float score, a disease profile, the user's symptoms, and the symptom dictionary.
+    It computes the metadata needed for the UI. It figures out exactly which symptoms matched, sorts them 
+    by their mathematical contribution, finds the top expected symptoms the user was missing, and finds the highest severity score.
+    It returns a rich Candidate dataclass object ready to be sent to the front-end.
+    """
+    matched = [ # sympotoms both the disease and the user has
         MatchedSymptom(
             slug=symptoms[sid].slug,
             name=symptoms[sid].name,
@@ -194,7 +222,7 @@ def _explain(
     ]
     matched.sort(key=lambda m: -m.contribution)
 
-    unreported = [
+    unreported = [ # symptoms the disease has but not the user
         sid for sid in profile.support if sid not in reported and sid in symptoms
     ]
     unreported.sort(key=lambda sid: -symptoms[sid].idf)
@@ -223,7 +251,11 @@ def _explain(
 
 
 def _vector_norm(profile: DiseaseProfile, symptoms: dict[int, SymptomInfo]) -> float:
-    """L2 norm of the disease's (idf · support) vector."""
+    """It takes a disease profile and the symptom dictionary.
+    It computes the strict L2 norm (Euclidean length) of the disease's symptom vector by squaring 
+    the (idf * support) of every symptom and taking the square root of the sum.
+    It returns a float representing the geometric length of the disease, used purely for MMR similarity.
+    """
     return math.sqrt(
         sum(
             (symptoms[sid].idf * support) ** 2
@@ -236,13 +268,10 @@ def _vector_norm(profile: DiseaseProfile, symptoms: dict[int, SymptomInfo]) -> f
 def similarity(
     a: DiseaseProfile, b: DiseaseProfile, symptoms: dict[int, SymptomInfo]
 ) -> float:
-    """True IDF-weighted cosine between two diseases, in [0, 1].
-
-    Deliberately normalised differently from score_one(): that function compares a
-    presence-weighted user vector against a support-weighted disease vector, which
-    is a useful hybrid but not a strict cosine. MMR needs a genuine similarity —
-    in particular similarity(d, d) must be exactly 1.0, or a perfect duplicate
-    receives too small a redundancy penalty.
+    """It takes 2 different disease profiles and the symptom dictionary.
+    It computes the true, mathematical cosine similarity between the two diseases by comparing 
+    their overlapping symptoms and normalizing it against their vector lengths.
+    It returns a float between 0.0 (totally unrelated) and 1.0 (identical profiles), used to penalize redundancy.
     """
     shared = a.support.keys() & b.support.keys()
     if not shared:
@@ -261,15 +290,15 @@ def _mmr(
     symptoms: dict[int, SymptomInfo],
     config: ScoringConfig,
 ) -> list[tuple[float, DiseaseProfile]]:
-    """Maximal Marginal Relevance: penalise candidates resembling those already picked.
-
-    lambda = 1.0 disables this entirely (pure relevance), which is what the accuracy
-    evals use — MMR deliberately trades top-3 accuracy for variety.
+    """It takes the top pool of scored diseases, the symptom dictionary, and the config.
+    It computes Maximal Marginal Relevance. It iteratively picks the next best disease from the pool, but artificially 
+    lowers a disease's score if it is too mathematically similar (using similarity()) to the diseases already picked.
+    It returns a smaller, filtered list of 5 (score, DiseaseProfile) tuples that prioritize a diverse set of diagnoses.
     """
     if config.mmr_lambda >= 1.0 or len(pool) <= 1:
         return pool[: config.top_k]
 
-    remaining = list(pool)
+    remaining = list(pool) # brand new, flat copy of (score, DiseaseProfile)
     selected: list[tuple[float, DiseaseProfile]] = [remaining.pop(0)]
 
     while remaining and len(selected) < config.top_k:
@@ -278,7 +307,11 @@ def _mmr(
             redundancy = max(
                 similarity(profile, chosen, symptoms) for _, chosen in selected
             )
+            
+            # literal mathematical formula for Maximal Marginal Relevance (MMR)
+            # f.i: value = (0.7 * score) - (0.3 * redundancy) -> Give 70% of your attention to how accurate the disease is but subtract a 30% penalty if it is too similar to something we already showed the user.
             value = config.mmr_lambda * score - (1 - config.mmr_lambda) * redundancy
+            
             if value > best_value:
                 best_index, best_value = i, value
         selected.append(remaining.pop(best_index))
@@ -297,15 +330,10 @@ def discriminating_symptom(
     reported: set[int],
     symptoms: dict[int, SymptomInfo],
 ) -> str | None:
-    """The unreported symptom whose answer would most change the ranking.
-
-    A good question is one whose answer you cannot predict. A symptom every
-    candidate shares tells you nothing, and neither does one no candidate has —
-    so prefer the symptom splitting the candidates closest to 50/50 by score mass,
-    weighted by rarity.
-
-    Computed over the MMR-SELECTED set, not the wider pool: asking about a disease
-    that never reaches the screen cannot change what the user sees.
+    """It takes the list of UI candidates, the selected top disease tuples, the user's reported symptoms, and the symptom dict.
+    It computes the single best follow-up question by iterating over all unreported symptoms from the top diseases 
+    and finding the one that most evenly splits the probability mass of the top diseases, weighted by the symptom's rarity.
+    It returns the slug (string) of the chosen symptom, or None if no good question exists.
     """
     total = sum(score for score, _ in selected)
     if total <= 0 or len(selected) < 2:
@@ -322,8 +350,12 @@ def discriminating_symptom(
             yes_mass = sum(
                 score * p.support.get(sid, 0.0) for score, p in selected
             )
+            
+            # Tries to find Next Perfect Symptom to question (Exactly 50% of diseases have it) -> P = yes_mass / total = 0.5
             balance = 1 - abs(2 * yes_mass / total - 1)
-            gain = balance * symptoms[sid].idf
+            
+            # if it has to choose between two questions that both split the board 50/50, it will prefer to ask about a rare symptom rather than a generic one!
+            gain = balance * symptoms[sid].idf 
 
             if gain > best_gain:
                 best_slug, best_gain = symptoms[sid].slug, gain

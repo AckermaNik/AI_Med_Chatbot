@@ -308,7 +308,7 @@ def reconcile(vocab: Vocabulary) -> Vocabulary:
         a_words, b_words = set(match.split()), set(candidate.split())
         relation = "subset" if (a_words <= b_words or b_words <= a_words) else "variant"
         
-        verdict, reason = classify(match, candidate) # decide if the two words mean the same thing
+        verdict, reason = classify(match, candidate) # decide if the two words MEAN the same thing
 
         vocab.proposals.append(
             Proposal(

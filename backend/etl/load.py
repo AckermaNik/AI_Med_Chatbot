@@ -60,7 +60,7 @@ class QualityGateError(RuntimeError):
 @dataclass
 class Assembled:
     symptoms: dict[str, int | None] = field(default_factory=dict)  # name -> severity
-    aliases: dict[str, str] = field(default_factory=dict)  # alias -> canonical
+    aliases: dict[str, str] = field(default_factory=dict)  # symptom alias -> canonical 
     diseases: dict[str, dict] = field(default_factory=dict)  # name -> {source, description}
     edges: dict[tuple[str, str], float] = field(default_factory=dict) # (disease, symptom) -> support
     precautions: list[tuple[str, int, str]] = field(default_factory=list) # (disease , column number at the OG dataset, description)

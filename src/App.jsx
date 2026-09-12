@@ -1,132 +1,151 @@
-import { useState, useRef, useEffect } from 'react';
-import { Send, User, Heart, Bot, Sparkles } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
+import { AlertTriangle, Bot, ChevronDown, ChevronUp, Heart, Send, Stethoscope } from 'lucide-react';
+
+const SESSION_KEY = 'medai-session-id';
+
+function makeId() {
+  return crypto.randomUUID?.() ?? `${Date.now()}-${Math.random()}`;
+}
+
+function parseSseFrame(frame) {
+  const lines = frame.split(/\r?\n/);
+  const event = lines.find((line) => line.startsWith('event:'))?.slice(6).trim();
+  const data = lines.filter((line) => line.startsWith('data:')).map((line) => line.slice(5).trim()).join('\n');
+  return event && data ? { event, data: JSON.parse(data) } : null;
+}
+
+function summaryFor(result = {}) {
+  if (result.deferred) return 'Waiting for an earlier tool result';
+  if (result.matched) return `${result.matched.length} symptom${result.matched.length === 1 ? '' : 's'} matched`;
+  if (result.candidates) return `${result.candidates.length} candidate${result.candidates.length === 1 ? '' : 's'} ranked`;
+  if (result.specialties) return result.specialties.map((item) => item.name).join(', ') || 'No specialty found';
+  if (result.name) return result.name;
+  if (result.error) return result.error;
+  return 'Completed';
+}
+
+function ToolTrace({ activity }) {
+  const [open, setOpen] = useState(false);
+  if (!activity.length) return null;
+  return (
+    <section className="mx-auto w-full max-w-[85%] rounded-xl border border-slate-200 bg-white/80 p-3 text-xs text-slate-600 shadow-sm">
+      <button type="button" onClick={() => setOpen((value) => !value)} className="flex w-full items-center justify-between font-semibold text-slate-700">
+        <span>Engine activity · {activity.length} step{activity.length === 1 ? '' : 's'}</span>
+        {open ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+      </button>
+      {open && <div className="mt-3 space-y-2">{activity.map((item) => <div key={item.id} className="rounded-lg bg-slate-50 p-2"><div className="font-mono font-semibold text-teal-700">{item.name}</div><div>{item.result ? summaryFor(item.result) : 'Running…'}</div></div>)}</div>}
+    </section>
+  );
+}
+
+function AlertCard({ alert }) {
+  const emergency = alert.level === 'emergency';
+  return <div className={`mx-auto flex w-full max-w-[85%] gap-3 rounded-2xl border p-4 text-sm shadow-sm ${emergency ? 'border-red-300 bg-red-50 text-red-950' : 'border-amber-300 bg-amber-50 text-amber-950'}`}><AlertTriangle className="mt-0.5 h-5 w-5 shrink-0" /><div><strong>{emergency ? 'Emergency alert' : 'Urgent alert'}: </strong>{alert.message}</div></div>;
+}
 
 export default function App() {
-  const [messages, setMessages] = useState([
-    {
-      id: 1,
-      sender: 'bot',
-      text: "Welcome to MedAi Clinic! How can I help you today?",
-      isWelcome: true
-    }
-  ]);
+  const [messages, setMessages] = useState([{ id: 'welcome', sender: 'bot', text: 'Welcome to MedAi Clinic! How can I help you today?', isWelcome: true }]);
+  const [activity, setActivity] = useState([]);
   const [input, setInput] = useState('');
+  const [isSending, setIsSending] = useState(false);
   const chatEndRef = useRef(null);
 
-  // Auto-scrolls chat window when a new response arrives
   useEffect(() => {
+    // Effects may return only a cleanup function; do not implicitly return the
+    // value of scrollIntoView (or a Promise) from this callback.
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages]);
+  }, [messages, activity, isSending]);
+  const addMessage = (message) => setMessages((current) => [...current, { id: makeId(), ...message }]);
 
-  const handleSend = (e) => {
-    e.preventDefault();
-    if (!input.trim()) return;
-
-    const userMessage = {
-      id: Date.now(),
-      sender: 'user',
-      text: input
-    };
-
-    setMessages((prev) => [...prev, userMessage]);
-    setInput('');
-
-    // Simulated Bot Response
-    setTimeout(() => {
-      setMessages((prev) => [
-        ...prev,
-        {
-          id: Date.now() + 1,
-          sender: 'bot',
-          text: "I am consulting the digital medical scrolls... I'll have an answer for you soon!"
-        }
-      ]);
-    }, 1000);
+  const handleEvent = (event, payload) => {
+    if (event === 'tool_call') setActivity((current) => [...current, { id: makeId(), name: payload.name, args: payload.args, result: null }]);
+    else if (event === 'tool_result') setActivity((current) => {
+      const index = current.findIndex((item) => item.name === payload.name && !item.result);
+      return index < 0 ? current : current.map((item, itemIndex) => itemIndex === index ? { ...item, result: payload.result } : item);
+    });
+    else if (event === 'alert') addMessage({ sender: 'alert', alert: payload });
+    else if (event === 'message') addMessage({ sender: 'bot', text: payload.text });
+    else if (event === 'error') addMessage({ sender: 'bot', text: payload.message || 'The assistant could not complete that request.', isError: true });
+    else if (event === 'done' && payload.session_id) localStorage.setItem(SESSION_KEY, payload.session_id);
   };
 
-  return (
-    <div className="w-full min-h-screen bg-gradient-to-tr from-[#34D355] via-[#6EE7B7] to-[#93C5FF] flex items-center justify-center p-4 font-sans antialiased selection:bg-[#B2DFDB]">      {/* Central View Device Container */}
-      <div className="w-full max-w-5xl h-[85vh] bg-[#E2E8F0] rounded-3xl border border-white/50 shadow-xl flex flex-col overflow-hidden relative">
-        
-        {/* Top Header Bar */}
-        <header className="p-4 flex items-center justify-between border-b border-gray-100/50 bg-white">
+  const handleSend = async (event) => {
+    event.preventDefault();
+    const message = input.trim();
+    if (!message || isSending) return;
+    addMessage({ sender: 'user', text: message });
+    setInput('');
+    setActivity([]);
+    setIsSending(true);
+
+    try {
+      const response = await fetch('/api/chat', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message, session_id: localStorage.getItem(SESSION_KEY) }),
+      });
+      if (!response.ok || !response.body) throw new Error(`Request failed (${response.status})`);
+
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = '';
+      while (true) {
+        const { done, value } = await reader.read();
+        buffer += decoder.decode(value || new Uint8Array(), { stream: !done });
+        const frames = buffer.split(/\r?\n\r?\n/);
+        buffer = frames.pop() || '';
+        for (const frame of frames) {
+          const parsed = parseSseFrame(frame);
+          if (parsed) handleEvent(parsed.event, parsed.data);
+        }
+        if (done) break;
+      }
+    } catch (error) {
+      addMessage({ sender: 'bot', text: `Connection error: ${error.message}. Make sure the FastAPI server is running.`, isError: true });
+    } finally {
+      setIsSending(false);
+    }
+  };
+
+  return <div className="flex min-h-screen w-full items-center justify-center bg-gradient-to-tr from-[#34D355] via-[#6EE7B7] to-[#93C5FF] p-4 font-sans antialiased selection:bg-[#B2DFDB]">
+      <div className="relative flex h-[85vh] w-full max-w-5xl flex-col overflow-hidden rounded-3xl border border-white/50 bg-[#E2E8F0] shadow-xl">
+        <header className="flex items-center justify-between border-b border-gray-100/50 bg-white p-4">
           <div className="flex items-center gap-2">
-            <div className="w-10 h-10 rounded-full bg-[#E8F5E9] flex items-center justify-center border border-emerald-100 animate-pulse">
-              <Heart className="w-5 h-5 text-emerald-500 fill-emerald-400/30" />
+            <div className="flex h-10 w-10 items-center justify-center rounded-full border border-emerald-100 bg-[#E8F5E9]">
+              <Heart className="h-5 w-5 fill-emerald-400/30 text-emerald-500" />
             </div>
             <div>
-              <h1 className="text-base font-bold text-slate-800 tracking-tight">MedAi Clinic</h1>
-              <p className="text-xs text-emerald-600 font-medium flex items-center gap-1">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 inline-block animate-bounce" /> Online Health Guide
-              </p>
+              <h1 className="text-base font-bold tracking-tight text-slate-800">MedAi Clinic</h1>
+              <p className="flex items-center gap-1 text-xs font-medium text-emerald-600"><span className="inline-block h-1.5 w-1.5 rounded-full bg-emerald-500" /> Online Health Guide</p>
             </div>
           </div>
-
-          {/* User Profile Icon */}
-          <button className="w-10 h-10 rounded-xl bg-slate-200/80 hover:bg-slate-300/80 active:scale-95 transition-all flex items-center justify-center border border-slate-300/30 group">
-            <User className="w-5 h-5 text-slate-600 group-hover:rotate-12 transition-transform" />
-          </button>
         </header>
-
-        {/* Chat Feed */}
-        <main className="flex-1 overflow-y-auto p-4 space-y-4 scrollbar-thin scrollbar-thumb-slate-200">
-          {messages.map((msg) => {
-            const isBot = msg.sender === 'bot';
-            return (
-              <div 
-                key={msg.id} 
-                className={`flex gap-2.5 items-end max-w-[85%] ${isBot ? 'mr-auto' : 'ml-auto flex-row-reverse animate-[slideInRight_0.2s_ease-out]'}`}
-              >
-                {/* Bot Profile Avatar Container */}
-                {isBot && (
-                  <div className={`rounded-full bg-[#E1F5FE] border border-sky-100 flex items-center justify-center flex-shrink-0 shadow-sm transition-all
-                    ${msg.isWelcome ? 'w-9 h-9 border-2 ring-4 ring-emerald-50/50' : 'w-7 h-7'}`}
-                  >
-                    <Bot className={`text-sky-600 ${msg.isWelcome ? 'w-5 h-5' : 'w-4 h-4'}`} />
+        <main className="flex-1 space-y-4 overflow-y-auto p-4">
+          {messages.map((message) => {
+            if (message.sender === 'alert')
+                return <AlertCard key={message.id} alert={message.alert} />;
+            const isBot = message.sender === 'bot';
+            return <div key={message.id} className={`flex max-w-[85%] items-end gap-2.5 ${isBot ? 'mr-auto' : 'ml-auto flex-row-reverse'}`}>
+                {isBot &&
+                  <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-sky-100 bg-[#E1F5FE]">
+                    <Bot className="h-4 w-4 text-sky-600" />
                   </div>
-                )}
-
-                {/* Speech Bubble Markup */}
-                {/* Speech Bubble Markup */}
-                <div 
-                  className={`p-3.5 rounded-2xl text-sm font-semibold shadow-sm transition-all hover:shadow-md duration-300
-                    ${isBot 
-                      ? msg.isWelcome 
-                        ? 'bg-gradient-to-br from-[#A7F3D0] to-[#86EFAC] text-emerald-950 rounded-bl-none border border-emerald-300/40 animate-[slideInLeft_0.25s_ease-out]'
-                        : 'bg-gradient-to-br from-[#E0F2FE] to-[#BAE6FD] text-sky-950 rounded-bl-none border border-sky-200/40 animate-[slideInLeft_0.2s_ease-out]' 
-                      : 'bg-gradient-to-br from-[#2DD4BF] to-[#0D9488] text-white rounded-br-none shadow-md shadow-teal-500/10'}`}
-                >
-                  <p className="leading-relaxed whitespace-pre-line">{msg.text}</p>
+                }
+                <div className={`rounded-2xl p-3.5 text-sm font-semibold shadow-sm ${isBot ? (message.isError ? 'bg-red-100 text-red-950' : 'rounded-bl-none border border-sky-200/40 bg-gradient-to-br from-[#E0F2FE] to-[#BAE6FD] text-sky-950') : 'rounded-br-none bg-gradient-to-br from-[#2DD4BF] to-[#0D9488] text-white'}`}>
+                  <p className="whitespace-pre-line leading-relaxed">{message.text}</p>
                 </div>
-              </div>
-            );
+              </div>;
           })}
-          <div ref={chatEndRef} />
+          
+          <ToolTrace activity={activity} />
+          {isSending && 
+            <div className="flex items-center gap-2 text-sm font-medium text-slate-500">
+              <Stethoscope className="h-4 w-4 animate-pulse" /> 
+              Consulting the triage engine…
+            </div>}
+            <div ref={chatEndRef} />
         </main>
-
-        {/* Form Input Area */}
-        <footer className="p-3 bg-white border-t border-gray-100/40">
-          <form onSubmit={handleSend} className="relative flex items-center">
-            {/* Tiny decorative sparkle icon inside the input */}
-            <Sparkles className="absolute left-4 w-4 h-4 text-teal-400/70 pointer-events-none" />
-            
-            <input
-              type="text"
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              placeholder="Ask a medical question..."
-              className="w-full bg-white border border-slate-200 rounded-full py-3 pl-10 pr-12 text-sm font-medium text-slate-700 placeholder-slate-400 focus:outline-none focus:border-[#00BFA5] focus:ring-4 focus:ring-teal-50 transition-all shadow-inner"
-            />
-            <button
-              type="submit"
-              disabled={!input.trim()}
-              className="absolute right-1.5 p-2 rounded-full bg-[#00BFA5] hover:bg-[#00a892] text-white disabled:opacity-40 disabled:hover:bg-[#00BFA5] transition-all active:scale-95 flex items-center justify-center"
-            >
-              <Send className="w-4 h-4" />
-            </button>
-          </form>
-        </footer>
+        <footer className="border-t border-gray-100/40 bg-white p-3"><form onSubmit={handleSend} className="relative flex items-center"><input type="text" value={input} onChange={(event) => setInput(event.target.value)} placeholder="Describe your symptoms..." disabled={isSending} className="w-full rounded-full border border-slate-200 bg-white py-3 pl-4 pr-12 text-sm font-medium text-slate-700 placeholder-slate-400 shadow-inner transition-all focus:border-[#00BFA5] focus:outline-none focus:ring-4 focus:ring-teal-50 disabled:cursor-not-allowed disabled:bg-slate-100" /><button type="submit" disabled={!input.trim() || isSending} className="absolute right-1.5 flex items-center justify-center rounded-full bg-[#00BFA5] p-2 text-white transition-all hover:bg-[#00a892] disabled:opacity-40"><Send className="h-4 w-4" /></button></form><p className="mt-2 text-center text-[11px] text-slate-400">Portfolio demonstration only — not a substitute for professional medical assessment.</p></footer>
       </div>
     </div>
-  );
+  ;
 }

@@ -73,6 +73,7 @@ async def main() -> int:
         )
         await session.commit()
 
+        # Specialty is an SQLAlchemy Model—which is just a Python class that acts as a direct blueprint for the specialty table in your Postgres database
         spec_ids = dict(
             (await session.execute(select(Specialty.slug, Specialty.id))).all()
         )
