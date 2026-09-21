@@ -33,7 +33,38 @@ Full design: [docs/PLAN.md](docs/PLAN.md).
 - Docker Desktop, running
 - A free Gemini API key from [aistudio.google.com/apikey](https://aistudio.google.com/apikey)
 
-### 1. Database
+### 1. Run the complete stack with Docker Compose
+
+Copy the environment template and add your Gemini key:
+
+```bash
+copy backend\.env.example backend\.env
+```
+
+Then start PostgreSQL, the FastAPI backend, and the React frontend together:
+
+```bash
+docker compose up --build
+```
+
+Open the application at [http://localhost:5173](http://localhost:5173). The backend
+health check is available at [http://localhost:8000/api/health](http://localhost:8000/api/health).
+
+The existing PostgreSQL service is kept as the `db` service and uses the persistent
+`pgdata` volume. The backend runs `alembic upgrade head` automatically at startup.
+Inside Docker it connects to `db:5432`; from your host machine PostgreSQL remains
+available at `localhost:5433`.
+
+To stop the stack while keeping database data:
+
+```bash
+docker compose down
+```
+
+Use `docker compose down -v` only when you intentionally want to delete the database
+volume and all stored data.
+
+### 2. Database only
 
 ```bash
 docker compose up -d
@@ -44,7 +75,7 @@ install). The image is `pgvector/pgvector:pg16` — plain `postgres:16` does not
 `vector` extension. `backend/db/init/01_extensions.sql` enables `pg_trgm` and `vector`
 on first start.
 
-### 2. Backend environment
+### 3. Backend environment
 
 ```bash
 py -3.11 -m venv backend/.venv
@@ -53,7 +84,7 @@ backend/.venv/Scripts/python.exe -m pip install -r backend/requirements.txt
 
 Then copy `backend/.env.example` to `backend/.env` and fill in `GEMINI_API_KEY`.
 
-### 3. Verify
+### 4. Verify
 
 ```bash
 backend/.venv/Scripts/python.exe backend/scripts/check_env.py
@@ -62,7 +93,7 @@ backend/.venv/Scripts/python.exe backend/scripts/check_env.py
 Checks imports, connects to the database, and confirms both extensions respond to real
 queries. Should end with `M0 complete`.
 
-### 4. Load the data
+### 5. Load the data
 
 Needs Kaggle API credentials at `~/.kaggle/kaggle.json`
 ([Kaggle → Settings → API → Create New Token](https://www.kaggle.com/settings)).

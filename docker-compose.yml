@@ -1,44 +1,107 @@
 
-# It defines how to set up and run a PostgreSQL database container 
-# that comes pre-packaged with the pgvector extension 
-# (which is commonly used for AI applications to store and search vector embeddings)
+# This file defines the complete local MedAi stack:
+#   1. PostgreSQL with pgvector for database and embedding support
+#   2. FastAPI backend
+#   3. React frontend served by Nginx
+#
+# Start everything with:
+#   docker compose up --build
 
-
-# Service Configuration / Container Identity & Behavior
-
-services: # defines all the different containers (services) you want to run.
-  db: # Other containers in this file (like frontend) would use db as the hostname to connect to this database
-    # pgvector/pgvector ships the `vector` extension preinstalled.
-    # Plain `postgres:16` does NOT — CREATE EXTENSION vector would fail.
+services:
+  # PostgreSQL image with the vector extension pre-installed.
+  # Plain postgres:16 does not include pgvector, so CREATE EXTENSION vector
+  # would fail during database initialization.
+  db:
     image: pgvector/pgvector:pg16
+    # Gives the container a predictable name when inspecting Docker locally.
     container_name: medai_db
-    restart: unless-stopped # It will only stay off if you manually tell it to stop
+    # Restart after a machine restart or an unexpected container failure.
+    restart: unless-stopped
 
-  # Database Credentials
-
+    # Credentials and database name used by the application.
     environment:
       POSTGRES_USER: medai
       POSTGRES_PASSWORD: medai
       POSTGRES_DB: medai
+
     ports:
-      # 5433 on the host, so a local copy of PostgreSQL running on the machine (which uses 5432) won't crash into each other.
+      # Host port 5433 maps to PostgreSQL's container port 5432.
+      # Port 5433 avoids conflicts with a PostgreSQL installation on the host.
       - "5433:5432"
 
-  # Storage & Setup
+    volumes:
+      # Keep database data when containers are recreated or stopped.
+      - pgdata:/var/lib/postgresql/data
 
-    volumes: # Volumes handle data persistence and file sharing between your computer and the container
-      - pgdata:/var/lib/postgresql/data # This line maps the database's internal storage directory to a safe, permanent space managed by Docke
-      - ./backend/db/init:/docker-entrypoint-initdb.d:ro 
+      # These SQL files run automatically the first time this volume is created.
+      # They enable pg_trgm and pgvector before Alembic creates application tables.
+      - ./backend/db/init:/docker-entrypoint-initdb.d:ro
 
-  # tells Docker how to verify if the database is actually ready to process data
     healthcheck:
+      # Compose uses this to decide when the database can accept connections.
       test: ["CMD-SHELL", "pg_isready -U medai -d medai"]
       interval: 5s
       timeout: 5s
       retries: 12
+      start_period: 5s
 
-# You have to declare it at the root level 
-# so Docker knows to allocate that permanent storage space for your project
+  # FastAPI application and API endpoints.
+  backend:
+    build:
+      # Use the repository root as context so the image can include backend code
+      # and the committed curated data used by the application.
+      context: .
+      # The Dockerfile installs Python dependencies and starts Uvicorn.
+      dockerfile: backend/Dockerfile
+    restart: unless-stopped
 
+    # Load secrets and application settings from backend/.env when that file exists.
+    # backend/.env is intentionally excluded from the Docker image.
+    env_file:
+      - path: ./backend/.env
+        required: false
+
+    environment:
+      # Inside the Compose network, services connect using the service name "db"
+      # and PostgreSQL's internal port 5432—not localhost:5433.
+      DATABASE_URL: postgresql+asyncpg://medai:medai@db:5432/medai
+
+    depends_on:
+      # Do not start the backend until PostgreSQL passes its health check.
+      db:
+        condition: service_healthy
+
+    ports:
+      # The API is also reachable directly from the host at localhost:8000.
+      - "8000:8000"
+
+    healthcheck:
+      # The backend health endpoint checks both FastAPI and its database connection.
+      test:
+        ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/api/health')"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 20s
+
+  # Production-style frontend container.
+  # Nginx serves the compiled React files and forwards /api requests to backend.
+  frontend:
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile
+    restart: unless-stopped
+
+    depends_on:
+      # Wait until the backend is healthy before starting the web UI.
+      backend:
+        condition: service_healthy
+
+    ports:
+      # Nginx listens on port 80 in the container and is exposed as localhost:5173.
+      - "5173:80"
+
+# Named volume managed by Docker. Removing it with "docker compose down -v"
+# permanently deletes the PostgreSQL data stored here.
 volumes:
   pgdata:

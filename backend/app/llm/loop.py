@@ -24,6 +24,7 @@ concurrently; taking only function_calls[0] would silently drop work.
 from __future__ import annotations
 
 import asyncio
+import re
 from collections.abc import AsyncIterator
 from dataclasses import dataclass, field
 from typing import Any
@@ -37,7 +38,26 @@ from app.llm.tools import dispatch, tool_config
 
 # Safety limit: one user message can trigger at most this many model/tool cycles.
 # It prevents an accidental infinite loop if the model keeps asking for tools.
-MAX_TOOL_STEPS = 5
+MAX_TOOL_STEPS = 10
+DISCLAIMER = "This is not a substitute for a real medical assessment."
+
+
+def normalize_reply(text: str) -> str:
+    """Apply the plain-text and closing-disclaimer rules after model generation."""
+    # The UI is intentionally plain text. Remove Markdown emphasis/code markers
+    # instead of trusting the model to remember that formatting constraint.
+    cleaned = re.sub(r"[*_`~#]", "", text)
+    # Do not allow a comma immediately before a coordinating conjunction.
+    cleaned = re.sub(r",\s*(?=(?:and|or)\b)", " ", cleaned, flags=re.IGNORECASE)
+    # Move any model-generated disclaimer to the end and normalize its wording.
+    cleaned = re.sub(
+        r"(?:please note that\s+)?(?:i am|this is) not a substitute for a real medical assessment\.?",
+        "",
+        cleaned,
+        flags=re.IGNORECASE,
+    )
+    cleaned = re.sub(r"\s+", " ", cleaned).strip()
+    return f"{cleaned}".strip()
 
 
 @dataclass
@@ -165,7 +185,7 @@ async def run_turn(
         calls = response.function_calls
         if not calls:
             # No tool call so Gemini considers this its final user-facing reply.
-            turn.text = (response.text or "").strip()
+            turn.text = normalize_reply(response.text or "")
             history.append(
                 types.Content(role="model", parts=[types.Part(text=turn.text)])
             )  # Save the reply so Gemini can refer to it on the next turn.

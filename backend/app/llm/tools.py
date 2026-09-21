@@ -32,7 +32,9 @@ class SearchSymptomsArgs(BaseModel):
     phrases: list[str] = Field(
         description=(
             "Short symptom phrases taken from what the user said, e.g. "
-            "['itchy rash', 'been throwing up']. One phrase per distinct symptom."
+            "['itchy rash', 'been throwing up']. One phrase per distinct symptom. "
+            "Include every distinct symptom in the message; never omit a symptom "
+            "because another symptom is related or more prominent."
         )
     )
 
@@ -178,13 +180,15 @@ async def recommend_specialty_tool(
 # --------------------------------------------------------------------------- #
 # registry
 # --------------------------------------------------------------------------- #
-
+# yes!! I have been vomiting a bit and i have a running and a stuffy nose too...
 TOOLS: dict[str, tuple[type[BaseModel], Any, str]] = {
     "search_symptoms": (
         SearchSymptomsArgs,
         search_symptoms,
         "Resolve the user's own words into canonical symptoms from the database. "
-        "Always call this before diagnose.",
+        "Always call this before diagnose. Extract every distinct symptom from the "
+        "user's message and provide one phrase for each; for example, stuffed nose "
+        "and runny nose are two phrases and must both be considered.",
     ),
     "diagnose": (
         DiagnoseArgs,
@@ -202,7 +206,10 @@ TOOLS: dict[str, tuple[type[BaseModel], Any, str]] = {
         SpecialtyArgs,
         recommend_specialty_tool,
         "Get the medical specialty to consult for a condition, or for the reported "
-        "symptoms if no condition is confident.",
+        "symptoms if no condition is confident. Returns at most two specialties: "
+        "General Practice ends the list when it is first; a specialist may be "
+        "followed by one additional specialty if one is available. Do not add "
+        "General Practice when only one specialist is available.",
     ),
 }
 

@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { AlertTriangle, Bot, ChevronDown, ChevronUp, Heart, Send, Stethoscope } from 'lucide-react';
 
 const SESSION_KEY = 'medai-session-id';
@@ -49,6 +49,25 @@ export default function App() {
   const [input, setInput] = useState('');
   const [isSending, setIsSending] = useState(false);
   const chatEndRef = useRef(null);
+  const inputRef = useRef(null);
+
+  useLayoutEffect(() => {
+    const textarea = inputRef.current;
+    const resize = () => {
+      textarea.style.height = 'auto';
+      textarea.style.height = `${textarea.scrollHeight + 2}px`;
+    };
+    resize();
+    let previousWidth = textarea.clientWidth;
+    const observer = new ResizeObserver(() => {
+      if (textarea.clientWidth !== previousWidth) {
+        previousWidth = textarea.clientWidth;
+        resize();
+      }
+    });
+    observer.observe(textarea);
+    return () => observer.disconnect();
+  }, [input]);
 
   useEffect(() => {
     // Effects may return only a cleanup function; do not implicitly return the
@@ -144,7 +163,19 @@ export default function App() {
             </div>}
             <div ref={chatEndRef} />
         </main>
-        <footer className="border-t border-gray-100/40 bg-white p-3"><form onSubmit={handleSend} className="relative flex items-center"><input type="text" value={input} onChange={(event) => setInput(event.target.value)} placeholder="Describe your symptoms..." disabled={isSending} className="w-full rounded-full border border-slate-200 bg-white py-3 pl-4 pr-12 text-sm font-medium text-slate-700 placeholder-slate-400 shadow-inner transition-all focus:border-[#00BFA5] focus:outline-none focus:ring-4 focus:ring-teal-50 disabled:cursor-not-allowed disabled:bg-slate-100" /><button type="submit" disabled={!input.trim() || isSending} className="absolute right-1.5 flex items-center justify-center rounded-full bg-[#00BFA5] p-2 text-white transition-all hover:bg-[#00a892] disabled:opacity-40"><Send className="h-4 w-4" /></button></form><p className="mt-2 text-center text-[11px] text-slate-400">Portfolio demonstration only — not a substitute for professional medical assessment.</p></footer>
+        <footer className="shrink-0 border-t border-gray-100/40 bg-white p-3">
+          <form onSubmit={handleSend} className="relative flex items-center">
+            <textarea ref={inputRef} rows={1} aria-label="Message" value={input} onChange={(event) => setInput(event.target.value)} onKeyDown={(event) => {
+              if (event.key === 'Enter' && !event.shiftKey && !event.nativeEvent.isComposing) {
+                event.preventDefault();
+                event.currentTarget.form.requestSubmit();
+              }
+            }} placeholder="Describe your symptoms..." disabled={isSending} className="max-h-[40vh] w-full resize-none overflow-y-auto rounded-3xl border border-slate-200 bg-white py-3 pl-4 pr-12 text-sm font-medium text-slate-700 placeholder-slate-400 shadow-inner transition-colors focus:border-[#00BFA5] focus:outline-none focus:ring-4 focus:ring-teal-50 disabled:cursor-not-allowed disabled:bg-slate-100" />
+            <button type="submit" aria-label="Send message" disabled={!input.trim() || isSending} className="absolute bottom-1.5 right-1.5 flex items-center justify-center rounded-full bg-[#00BFA5] p-2 text-white transition-all hover:bg-[#00a892] disabled:opacity-40">
+            <Send className="h-4 w-4" /></button>
+          </form>
+          <p className="mt-2 text-center text-[11px] text-slate-400">Portfolio demonstration only — not a substitute for professional medical assessment.</p>
+        </footer>
       </div>
     </div>
   ;

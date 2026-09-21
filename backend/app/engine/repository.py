@@ -110,6 +110,19 @@ class SpecialtyAdvice:
         return self.mapping_source == "curated"
 
 
+async def _general_practice(session: AsyncSession) -> SpecialtyAdvice | None:
+    """Load the General Practice fallback recommendation."""
+    row = (
+        await session.execute(
+            text(
+                "SELECT name, description FROM specialty "
+                "WHERE slug = 'general-practice'"
+            )
+        )
+    ).first()
+    return SpecialtyAdvice(row.name, row.description, "fallback") if row else None
+
+
 async def recommend_specialty(
     session: AsyncSession,
     disease_slug: str | None,
@@ -132,18 +145,23 @@ async def recommend_specialty(
                     JOIN specialty sp ON sp.id = dsp.specialty_id
                     WHERE d.slug = :slug AND dsp.mapping_source = 'curated'
                     ORDER BY sp.name
+                    LIMIT 2
                     """
                 ),
                 {"slug": disease_slug},
             )
         ).all()
         if rows:
-            return [
-                SpecialtyAdvice(r.name, r.description, r.mapping_source) for r in rows
+            advice = [
+                SpecialtyAdvice(r.name, r.description, r.mapping_source)
+                for r in rows
             ]
+            if advice[0].name.strip().casefold() == "general practice":
+                return advice[:1]
+            return advice
 
     if symptom_ids:
-        row = (
+        rows = (
             await session.execute(
                 text(
                     """
@@ -154,23 +172,23 @@ async def recommend_specialty(
                     WHERE s.id = ANY(:ids) AND s.body_system IS NOT NULL
                     GROUP BY sp.id, sp.name, sp.description
                     ORDER BY count(*) DESC, sp.name
-                    LIMIT 1
+                    LIMIT 2
                     """
                 ),
                 {"ids": sorted(symptom_ids)},
             )
-        ).first()
-        if row:
-            return [SpecialtyAdvice(row.name, row.description, "body-system")]
+        ).all()
+        if rows:
+            advice = [
+                SpecialtyAdvice(row.name, row.description, "body-system")
+                for row in rows
+            ]
+            if advice[0].name.strip().casefold() == "general practice":
+                return advice[:1]
+            return advice
 
-    row = (
-        await session.execute(
-            text(
-                "SELECT name, description FROM specialty WHERE slug = 'general-practice'"
-            )
-        )
-    ).first()
-    return [SpecialtyAdvice(row.name, row.description, "fallback")] if row else []
+    gp = await _general_practice(session)
+    return [gp] if gp else []
 
 
 async def diagnose(

@@ -1,6 +1,6 @@
 """Unit tests for orchestration rules in the manual tool-calling loop."""
 
-from app.llm.loop import _defer_until_next_round
+from app.llm.loop import _defer_until_next_round, normalize_reply
 
 
 def test_diagnosis_waits_for_a_same_batch_symptom_search():
@@ -23,3 +23,12 @@ def test_disease_info_waits_for_same_batch_diagnosis():
 def test_specialty_waits_for_its_same_batch_inputs():
     assert _defer_until_next_round("recommend_specialty", {"search_symptoms", "recommend_specialty"})
     assert _defer_until_next_round("recommend_specialty", {"diagnose", "recommend_specialty"})
+
+
+def test_normalize_reply_enforces_plain_text_and_final_disclaimer():
+    reply = normalize_reply(
+        "You may have **common cold**, and vomiting. Please note that I am not a "
+        "substitute for a real medical assessment. See a GP."
+    )
+    assert "**" not in reply
+    assert ", and" not in reply

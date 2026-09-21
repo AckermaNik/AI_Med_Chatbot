@@ -1,0 +1,15 @@
+.git
+.gitignore
+.claude
+.codex
+.pytest_cache
+**/__pycache__
+**/*.py[cod]
+backend/.env
+backend/.venv
+backend/.pytest_cache
+node_modules
+dist
+.vite
+*.log
+data/raw
