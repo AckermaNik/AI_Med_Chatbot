@@ -9,3 +9,12 @@
   from { transform: translateX(10px); opacity: 0; }
   to { transform: translateX(0); opacity: 1; }
 }
+
+@keyframes heartFloat {
+  0%, 100% { transform: translateY(-4px); }
+  50% { transform: translateY(3px); }
+}
+
+@utility animate-heart-float {
+  animation: heartFloat 2.8s ease-in-out infinite;
+}

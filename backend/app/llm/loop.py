@@ -34,12 +34,36 @@ from google.genai import types
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config import get_settings
+from app.engine.safety import check_red_flags_in_text
 from app.llm.tools import dispatch, tool_config
 
 # Safety limit: one user message can trigger at most this many model/tool cycles.
 # It prevents an accidental infinite loop if the model keeps asking for tools.
 MAX_TOOL_STEPS = 10
 DISCLAIMER = "This is not a substitute for a real medical assessment."
+
+# Short conversational replies do not contain symptoms and should not trigger
+# the expensive LLM -> matcher -> embedding pipeline.
+CONFIRMATION_ONLY = re.compile(
+    r"^(?:u\s+sure\??|are\s+you\s+sure\??|ok(?:ay)?\.?|what\s+do\s+you\s+mean\??)$",
+    re.IGNORECASE,
+)
+
+SOCIAL_ONLY = re.compile(
+    r"^(?:thanks?\.?|thank\s+you\.?|hello\.?|hi\.?|hey\.?|"
+    r"you(?:'re|\s+are)\s+(?:awesome|great|amazing|helpful|the\s+best)\.?|"
+    r"you(?:'re|\s+are)\s+(?:bad|terrible|useless|awful)\.?|you\s+suck\.?|"
+    r"good\s+job\.?|nice\s+job\.?)$",
+    re.IGNORECASE,
+)
+
+NON_MEDICAL_ONLY = re.compile(
+    r"^(?:how\s+are\s+you\??|what(?:'s| is)\s+the\s+weather(?:\s+like)?\??|"
+    r"who\s+is\s+.+\??|tell\s+me\s+about\s+(?:a|an|the)\s+.+|"
+    r"what\s+is\s+(?:this|that)\s+object\??|what\s+does\s+.+\s+do\??|"
+    r"what\s+jobs?\s+(?:are|is)\s+there\??|how\s+do\s+i\s+become\s+.+\??)$",
+    re.IGNORECASE,
+)
 
 
 def normalize_reply(text: str) -> str:
@@ -86,6 +110,29 @@ class Event:
 
     kind: str  # Event category: tool_call, tool_result, message, error, or alert.
     payload: Any  # Data for the event; its type depends on ``kind``.
+
+
+def alert_payload(alert: Any) -> dict[str, str]:
+    """Make every emergency event actionable even when the LLM is bypassed."""
+    message = alert.message
+    if alert.level == "emergency" and "112" not in message and "166" not in message:
+        message = f"{message} Call 112 or 166 immediately."
+    return {"level": alert.level, "name": alert.name, "message": message}
+
+
+def is_conversational_only(message: str) -> bool:
+    """Identify short confirmation messages that need no tool or model call."""
+    return bool(CONFIRMATION_ONLY.fullmatch(message.strip()))
+
+
+def is_social_only(message: str) -> bool:
+    """Identify greetings and feedback that need no tool or model call."""
+    return bool(SOCIAL_ONLY.fullmatch(message.strip()))
+
+
+def is_non_medical_only(message: str) -> bool:
+    """Identify clearly unrelated questions without blocking mixed health messages."""
+    return bool(NON_MEDICAL_ONLY.fullmatch(message.strip()))
 
 
 def build_client() -> genai.Client:
@@ -162,6 +209,45 @@ async def run_turn(
 
     turn = Turn()  # Collects all activity and the final reply for this message.
 
+    # Check the raw user message before asking the LLM to extract symptoms. This
+    # prevents an emergency from being missed when the model omits one symptom,
+    # such as "confused" in "I am having a seizure and I am confused".
+    early_alerts = await check_red_flags_in_text(session, message)
+    if early_alerts:
+        for alert in early_alerts:
+            yield Event("alert", alert_payload(alert))
+        return
+
+    if is_conversational_only(message):
+        quick_reply = (
+            "I am an AI chatbot, not a real doctor, so for a proper diagnosis you "
+            "should consult a qualified doctor. If you think your condition is an "
+            "emergency, call 112 or 166 immediately. Otherwise, I am happy to help "
+            "you as far as I can."
+        )
+        history.append(types.Content(role="model", parts=[types.Part(text=quick_reply)]))
+        yield Event("message", Turn(text=quick_reply))
+        return
+
+    if is_social_only(message):
+        quick_reply = (
+            "Hello! I am here to help with health symptoms and medical triage. "
+            "Describe what you are experiencing and when it started."
+        )
+        history.append(types.Content(role="model", parts=[types.Part(text=quick_reply)]))
+        yield Event("message", Turn(text=quick_reply))
+        return
+
+    if is_non_medical_only(message):
+        quick_reply = (
+            "I am designed to help with health symptoms and medical triage, so I "
+            "cannot answer general questions about that topic. If you need help "
+            "with symptoms, describe what you are experiencing and when it started."
+        )
+        history.append(types.Content(role="model", parts=[types.Part(text=quick_reply)]))
+        yield Event("message", Turn(text=quick_reply))
+        return
+
     for step in range(MAX_TOOL_STEPS):
         turn.steps = step + 1  # Human-friendly count: 1 through MAX_TOOL_STEPS.
         try:
@@ -220,7 +306,14 @@ async def run_turn(
             # relay. If the model ignores or softens the warning, the user still
             # sees it.
             for alert in result.get("alerts") or []:
-                yield Event("alert", alert)
+                message_text = alert["message"]
+                if (
+                    alert.get("level") == "emergency"
+                    and "112" not in message_text
+                    and "166" not in message_text
+                ):
+                    message_text = f"{message_text} Call 112 or 166 immediately."
+                yield Event("alert", {**alert, "message": message_text})
 
             parts.append(
                 types.Part.from_function_response(name=call.name, response=result)

@@ -40,7 +40,7 @@ function ToolTrace({ activity }) {
 
 function AlertCard({ alert }) {
   const emergency = alert.level === 'emergency';
-  return <div className={`mx-auto flex w-full max-w-[85%] gap-3 rounded-2xl border p-4 text-sm shadow-sm ${emergency ? 'border-red-300 bg-red-50 text-red-950' : 'border-amber-300 bg-amber-50 text-amber-950'}`}><AlertTriangle className="mt-0.5 h-5 w-5 shrink-0" /><div><strong>{emergency ? 'Emergency alert' : 'Urgent alert'}: </strong>{alert.message}</div></div>;
+  return <div role="alert" aria-live={emergency ? 'assertive' : 'polite'} className={`mx-auto flex w-full max-w-[85%] gap-3 rounded-2xl border p-4 text-sm shadow-sm ${emergency ? 'border-red-500 bg-red-100 text-red-900' : 'border-amber-400 bg-amber-50 text-amber-950'}`}><AlertTriangle className={`mt-0.5 h-5 w-5 shrink-0 ${emergency ? 'text-red-700' : 'text-amber-700'}`} /><div><strong>{emergency ? 'Emergency alert' : 'Urgent alert'}: </strong>{alert.message}</div></div>;
 }
 
 export default function App() {
@@ -107,6 +107,8 @@ export default function App() {
       const reader = response.body.getReader();
       const decoder = new TextDecoder();
       let buffer = '';
+
+      
       while (true) {
         const { done, value } = await reader.read();
         buffer += decoder.decode(value || new Uint8Array(), { stream: !done });
@@ -129,8 +131,8 @@ export default function App() {
       <div className="relative flex h-[85vh] w-full max-w-5xl flex-col overflow-hidden rounded-3xl border border-white/50 bg-[#E2E8F0] shadow-xl">
         <header className="flex items-center justify-between border-b border-gray-100/50 bg-white p-4">
           <div className="flex items-center gap-2">
-            <div className="flex h-10 w-10 items-center justify-center rounded-full border border-emerald-100 bg-[#E8F5E9]">
-              <Heart className="h-5 w-5 fill-emerald-400/30 text-emerald-500" />
+            <div className="relative -ml-1 flex h-14 w-14 items-center justify-center rounded-full border border-emerald-200 bg-[#E8F5E9] shadow-lg ring-4 ring-white motion-safe:animate-heart-float">
+              <Heart className="h-7 w-7 fill-emerald-400/30 text-emerald-500" />
             </div>
             <div>
               <h1 className="text-base font-bold tracking-tight text-slate-800">MedAi Clinic</h1>

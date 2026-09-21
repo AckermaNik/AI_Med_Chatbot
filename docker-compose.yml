@@ -7,6 +7,10 @@
 # Start everything with:
 #   docker compose up --build
 
+# Keep the same Compose project name as the existing PostgreSQL container.
+# This lets Compose recognize medai_db and reuse its ai_chatbot_pgdata volume.
+name: ai_chatbot
+
 services:
   # PostgreSQL image with the vector extension pre-installed.
   # Plain postgres:16 does not include pgvector, so CREATE EXTENSION vector
