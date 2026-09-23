@@ -86,6 +86,8 @@ async def _exact(session: AsyncSession, norm: str) -> tuple[int, str, str, str] 
 # to tell it how to process the data that are getting crushed
 
 # GROUP BY doesn't need an aggregator when you only SELECT the exact things you GROUP BY.
+
+# If you are not grouping data, you do not need GROUP BY at all
 async def _trigram(
     session: AsyncSession, norm: str, threshold: float
 ) -> tuple[int, str, str, float] | None:

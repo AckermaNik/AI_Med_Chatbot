@@ -2,6 +2,7 @@ import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { AlertTriangle, Bot, ChevronDown, ChevronUp, Heart, Send, Stethoscope } from 'lucide-react';
 
 const SESSION_KEY = 'medai-session-id';
+const API_BASE_URL = (import.meta.env.VITE_API_URL || '').replace(/\/$/, '');
 
 function makeId() {
   return crypto.randomUUID?.() ?? `${Date.now()}-${Math.random()}`;
@@ -98,7 +99,7 @@ export default function App() {
     setIsSending(true);
 
     try {
-      const response = await fetch('/api/chat', {
+      const response = await fetch(`${API_BASE_URL}/api/chat`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ message, session_id: localStorage.getItem(SESSION_KEY) }),
       });

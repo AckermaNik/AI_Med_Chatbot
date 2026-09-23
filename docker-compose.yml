@@ -92,8 +92,9 @@ services:
   # Nginx serves the compiled React files and forwards /api requests to backend.
   frontend:
     build:
-      context: .
-      dockerfile: frontend/Dockerfile
+      # The frontend is self-contained; backend and data are not part of its image.
+      context: ./frontend
+      dockerfile: Dockerfile
     restart: unless-stopped
 
     depends_on:

@@ -85,7 +85,14 @@ AI_chatbot/
 │   │   ├── run_grounding.py
 │   │   └── run_redflags.py
 │   └── tests/
-└── src/                   
+└── frontend/
+    ├── src/
+    ├── public/
+    ├── index.html
+    ├── package.json
+    ├── vite.config.js
+    ├── Dockerfile
+    └── nginx.conf
 ```
 ---
 

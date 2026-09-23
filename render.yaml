@@ -1,0 +1,38 @@
+services:
+  - type: web
+    name: medai-clinic-api
+    runtime: docker
+    plan: free
+    region: frankfurt
+    dockerfilePath: ./backend/Dockerfile
+    dockerContext: .
+    healthCheckPath: /api/health
+    envVars:
+      - key: DATABASE_URL
+        sync: false
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: GEMINI_MODEL
+        value: gemini-3.5-flash-lite
+      - key: CORS_ORIGINS
+        sync: false
+      - key: EMBEDDING_MODEL
+        value: sentence-transformers/all-MiniLM-L6-v2
+      - key: SCORING_MU
+        value: "2.0"
+      - key: SCORING_MMR_LAMBDA
+        value: "0.7"
+      - key: SCORING_MMR_POOL
+        value: "20"
+      - key: SCORING_TOP_K
+        value: "5"
+      - key: SCORING_MIN_SCORE
+        value: "0.15"
+      - key: SCORING_CONFIDENT_MARGIN
+        value: "0.15"
+      - key: SCORING_MAX_FOLLOWUPS
+        value: "3"
+      - key: MATCH_TRIGRAM_THRESHOLD
+        value: "0.45"
+      - key: MATCH_EMBEDDING_THRESHOLD
+        value: "0.60"

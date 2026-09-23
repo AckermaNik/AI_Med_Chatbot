@@ -20,6 +20,7 @@ from google.genai import types
 from pydantic import BaseModel, Field
 from sqlalchemy import text
 
+from app.config import get_settings
 from app.db import SessionLocal, engine
 from app.llm.loop import Event, ToolCall, Turn, build_client, run_turn
 
@@ -52,9 +53,16 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
 
 app = FastAPI(title="MedAi Clinic API", version="0.1.0", lifespan=lifespan)
 
+settings = get_settings()
+allowed_origins = [
+    origin.strip()
+    for origin in settings.cors_origins.split(",")
+    if origin.strip()
+]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173", "http://127.0.0.1:5173"],
+    allow_origins=allowed_origins,
     allow_credentials=False,
     allow_methods=["GET", "POST"],
     allow_headers=["Content-Type"],
@@ -81,6 +89,9 @@ def event_payload(event: Event) -> dict:
         return {"message": str(event.payload)}
     return event.payload
 
+@app.head("/")
+async def health_check():
+    return {"status": "Server is awake and running!"}
 
 @app.get("/api/health")
 async def health() -> dict[str, str]:
