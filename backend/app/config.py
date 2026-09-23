@@ -44,7 +44,7 @@ class MatchConfig(BaseSettings):
 
     model_config = SettingsConfigDict(env_prefix="MATCH_", extra="ignore")
 
-    trigram_threshold: float = 0.45 #Look in the .env file for this value, but when you bring it inside the app, force it to be a mathematical decimal (float).
+    trigram_threshold: float = 0.35 # Lower threshold catches plausible spelling errors; embedding remains the first semantic check.
     embedding_threshold: float = 0.60
 
 

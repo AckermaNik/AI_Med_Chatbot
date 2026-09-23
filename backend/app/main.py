@@ -55,7 +55,7 @@ app = FastAPI(title="MedAi Clinic API", version="0.1.0", lifespan=lifespan)
 
 settings = get_settings()
 allowed_origins = [
-    origin.strip()
+    origin.strip().rstrip("/")
     for origin in settings.cors_origins.split(",")
     if origin.strip()
 ]
@@ -64,7 +64,7 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=allowed_origins,
     allow_credentials=False,
-    allow_methods=["GET", "POST"],
+    allow_methods=["GET", "POST", "OPTIONS"],
     allow_headers=["Content-Type"],
 )
 

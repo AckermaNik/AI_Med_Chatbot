@@ -33,6 +33,6 @@ services:
       - key: SCORING_MAX_FOLLOWUPS
         value: "3"
       - key: MATCH_TRIGRAM_THRESHOLD
-        value: "0.45"
+        value: "0.35"
       - key: MATCH_EMBEDDING_THRESHOLD
         value: "0.60"

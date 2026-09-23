@@ -31,10 +31,13 @@ from app.llm.prompts import SYSTEM_PROMPT
 class SearchSymptomsArgs(BaseModel):
     phrases: list[str] = Field(
         description=(
-            "Short symptom phrases taken from what the user said, e.g. "
-            "['itchy rash', 'been throwing up']. One phrase per distinct symptom. "
-            "Include every distinct symptom in the message; never omit a symptom "
-            "because another symptom is related or more prominent."
+            "A list containing exactly one symptom or symptom state per item. "
+            "Use short symptom text only, not a full sentence, subject, story, "
+            "or connecting words. For example, for 'my dad is throwing up and "
+            "had a seizure', send ['throwing up', 'seizure'], never one combined "
+            "item. Preserve important qualifiers as part of that one symptom, "
+            "such as 'slurred speech' or 'high fever'. Include every distinct "
+            "symptom and never merge separate symptoms."
         )
     )
 

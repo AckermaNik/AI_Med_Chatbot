@@ -5,17 +5,17 @@
 Each stage runs only if the previous one missed, so the common case costs a single indexed query.
 
     1. exact / alias      known vocabulary            indexed lookup
-    2. trigram fuzzy      typos, morphology           pg_trgm
-    3. embedding cosine   paraphrase                  pgvector
+    2. embedding cosine   paraphrase                  pgvector
+    3. trigram fuzzy      typos, morphology           pg_trgm
     4. miss               nothing cleared threshold   ask the user
 
 Stages 2 and 3 fail in different places, which is why both exist. Measured against
 the loaded data:
 
-    'tummy hurts'   trigram 0.333 -> 'hurts to breath'  (WRONG)
+'tummy hurts'   trigram 0.333 -> 'hurts to breath'  (below threshold)
                     embedding 0.682 -> 'stomach pain'   (right)
-    'stomache ake'  trigram 0.368 -> 'stomach pain'     (right)
-                    embedding 0.471 -> 'stomach pain'   (right, but weaker)
+'stomache ake'  embedding 0.471 -> below threshold
+                    trigram 0.368 -> below threshold
 """
 
 from __future__ import annotations
@@ -154,14 +154,17 @@ async def match_phrase(session: AsyncSession, phrase: str) -> Match | Miss:
         sid, slug, name, stage = hit
         return Match(phrase, sid, slug, name, 1.0, stage)
 
-    if hit := await _trigram(session, norm, settings.match.trigram_threshold):
-        sid, slug, name, score = hit
-        return Match(phrase, sid, slug, name, round(score, 3), "trigram")
-
+    # Try semantic similarity before lexical fuzziness. The two scores are not
+    # directly comparable, so this is an intentional priority order: embeddings
+    # handle paraphrases, while trigram is the fallback for spelling/morphology.
     semantic = await _semantic(session, phrase, settings.match.embedding_threshold)
     if semantic and semantic[0][3] >= settings.match.embedding_threshold:
         sid, slug, name, cosine = semantic[0]
         return Match(phrase, sid, slug, name, round(cosine, 3), "embedding")
+
+    if hit := await _trigram(session, norm, settings.match.trigram_threshold):
+        sid, slug, name, score = hit
+        return Match(phrase, sid, slug, name, round(score, 3), "trigram")
 
     # Nothing cleared threshold. Hand back the misses so the model can ask
     # rather than silently dropping what the user said.

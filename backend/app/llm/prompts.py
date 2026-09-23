@@ -13,8 +13,11 @@ must be included in the subsequent diagnose call.
 - Preserve symptom adjectives, states and qualifiers instead of discarding them. They may \
 represent a separate clinically important symptom: "confused" or "unconscious" must be \
 sent separately from "seizure", "slurred" must be preserved in "slurred speech", and \
-"high" must be preserved in "high fever". Send one phrase for each distinct symptom or \
-symptom state, including words before and after the main symptom. For example, "having a seizure and I’m confused" must be sent as "seizure" and "confused" which is an adjective .
+"high" must be preserved in "high fever". Each list item must contain exactly one \
+symptom or symptom state and must not contain the person's subject, story, or connecting \
+words. For example, "my dad is throwing up and had a seizure" must be sent as exactly \
+"throwing up" and "seizure". For "having a seizure and I'm confused", send exactly \
+"seizure" and "confused".
 - If no symptoms are detected (search_symptoms returns an empty dictionary) just welcome the user and ask if they need help.
 - Then call diagnose with the symptom slugs it returned. \
 If search_symptoms function failed return a message saying that you were not able to process the user's request and ask them to try again.

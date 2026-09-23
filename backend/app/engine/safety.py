@@ -63,9 +63,9 @@ class Alert:
 async def check_red_flags(
     session: AsyncSession, symptom_ids: set[int]
 ) -> list[Alert]:
-    """Every rule whose required symptoms are ALL present, worst level first.
+    """Every rule whose required symptoms are ALL present.
 
-    `require_all` is an int[] property of symptom ids; `@>` is 'contains', so the test is
+    `require_all` is a property of red_flag table. `@>` is 'contains', so the test is
     'the reported set contains every symptom this rule requires'.
     """
     if not symptom_ids:

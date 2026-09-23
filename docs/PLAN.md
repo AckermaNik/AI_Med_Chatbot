@@ -179,9 +179,10 @@ case stays a single indexed query.
 | 4. Miss | nothing cleared threshold | return `unmatched`; the model asks a clarifying question |
 
 Stages 2 and 3 fail in completely different places, which is why both are needed.
-`tummy hurts` and `stomach pain` share almost no character trigrams, so stage 2 scores
-it near zero; embeddings compare meaning and land it. Conversely `stomache ake` is
-lexically close but semantically noisy — stage 2 nails it cheaply.
+`tummy hurts` and `stomach pain` share almost no character trigrams, so the lexical
+fallback scores it near zero; embeddings compare meaning and can land it. Conversely,
+misspellings such as `stomache ake` can be recovered by the trigram fallback when the
+semantic score does not clear its threshold.
 
 **Embedding model:** [`fastembed`](https://github.com/qdrant/fastembed) with
 `all-MiniLM-L6-v2`. Runs on ONNX Runtime, 22MB model, no PyTorch dependency (~2GB
