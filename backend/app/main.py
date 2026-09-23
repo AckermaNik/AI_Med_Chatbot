@@ -89,9 +89,10 @@ def event_payload(event: Event) -> dict:
         return {"message": str(event.payload)}
     return event.payload
 
-@app.head("/")
-async def health_check():
-    return {"status": "Server is awake and running!"}
+@app.get("/", include_in_schema=False)
+async def root() -> dict[str, str]:
+    """Small landing response for browser and platform probes."""
+    return {"status": "ok", "service": "medai-clinic-api"}
 
 @app.get("/api/health")
 async def health() -> dict[str, str]:
