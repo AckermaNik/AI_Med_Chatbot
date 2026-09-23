@@ -2,7 +2,6 @@ name,level,require_all,message
 Possible heart attack,emergency,chest-pain|breathlessness,"Chest pain together with breathlessness can indicate a heart attack. Call emergency services now — do not drive yourself."
 Possible heart attack (sweating),emergency,chest-pain|sweating,"Chest pain with sweating can indicate a heart attack. Call emergency services now."
 Chest pain,emergency,chest-pain,"Chest pain can be an emergency. Call emergency services now, especially if it is severe, new, or accompanied by breathing difficulty, sweating, nausea, or weakness."
-Severe breathing difficulty,emergency,breathlessness,"Severe or sudden breathing difficulty can be an emergency. Call emergency services now."
 Possible stroke,emergency,weakness-of-one-body-side|slurred-speech,"Weakness on one side of the body with slurred speech can indicate a stroke. Call emergency services immediately — treatment is time-critical."
 Possible stroke (facial),emergency,focal-weakness|slurred-speech,"Sudden focal weakness with slurred speech can indicate a stroke. Call emergency services immediately."
 Reduced consciousness,emergency,altered-sensorium|coma,"Reduced or lost consciousness requires emergency assessment now."
