@@ -65,10 +65,10 @@ NON_MEDICAL_ONLY = re.compile(
     re.IGNORECASE,
 )
 
-
+ # The UI is intentionally plain text. Remove Markdown emphasis/code markers
 def normalize_reply(text: str) -> str:
     """Apply the plain-text and closing-disclaimer rules after model generation."""
-    # The UI is intentionally plain text. Remove Markdown emphasis/code markers
+   
     # instead of trusting the model to remember that formatting constraint.
     cleaned = re.sub(r"[*_`~#]", "", text)
     # Do not allow a comma immediately before a coordinating conjunction.
@@ -207,7 +207,7 @@ async def run_turn(
     config = tool_config()  # Gemini tool declarations and system prompt.
     history.append(user_turn(message))  # Add this new message before asking Gemini.
 
-    turn = Turn()  # Collects all activity and the final reply for this message.
+    turn = Turn()  # Temporary Object to collect all activity and the final reply for this message.
 
     # Check the raw user message before asking the LLM to extract symptoms. This
     # prevents an emergency from being missed when the model omits one symptom,

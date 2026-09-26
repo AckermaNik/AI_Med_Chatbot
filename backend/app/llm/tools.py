@@ -218,8 +218,11 @@ TOOLS: dict[str, tuple[type[BaseModel], Any, str]] = {
 
 
 def declarations() -> list[types.FunctionDeclaration]:
-    """Gemini-facing schemas, generated from the same Pydantic models used to
-    validate incoming arguments — so the two can never drift apart."""
+    """Gemini-facing schemas. It sends Gemini:
+        1) name: the function/tool name
+        2) description: what the tool does and when to use it
+        3) parameters_json_schema: the accepted argument structure, converted into Gemini-compatible JSON Schema.
+    """
     return [
         types.FunctionDeclaration(
             name=name,
@@ -239,6 +242,7 @@ async def dispatch(session: AsyncSession, name: str, args: dict) -> dict:
 
     model, fn, _ = entry
     try:
+        # validates Gemini’s generated arguments again:
         validated = model.model_validate(args or {})
     except ValidationError as exc:
         return {"error": "Invalid arguments.", "details": exc.errors(include_url=False)}
@@ -254,5 +258,5 @@ def tool_config() -> types.GenerateContentConfig:
         # We run the loop ourselves. Automatic mode would execute tools invisibly,
         # which hides the trace we want to show and removes our validation step.
         automatic_function_calling=types.AutomaticFunctionCallingConfig(disable=True),
-        temperature=0.2,
+        temperature=0.2, # how random Gemini’s responses are. 0 or near 0 are very consistent and predictable
     )
