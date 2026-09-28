@@ -102,6 +102,12 @@ async def health() -> dict[str, str]:
     return {"status": "ok"}
 
 
+@app.api_route("/health", methods=["GET", "HEAD"])
+async def liveness() -> dict[str, str]:
+    """Lightweight liveness check for browsers and external uptime monitors."""
+    return {"status": "ok", "service": "medai-clinic-api"}
+
+
 @app.post("/api/chat")
 async def chat(request: ChatRequest) -> StreamingResponse:
     """Stream tool activity and the final assistant reply for one chat message."""
