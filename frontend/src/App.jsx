@@ -17,8 +17,22 @@ function parseSseFrame(frame) {
 
 function summaryFor(result = {}) {
   if (result.deferred) return 'Waiting for an earlier tool result';
-  if (result.matched) return `${result.matched.length} symptom${result.matched.length === 1 ? '' : 's'} matched`;
-  if (result.candidates) return `${result.candidates.length} candidate${result.candidates.length === 1 ? '' : 's'} ranked`;
+  if (result.matched) {
+    const names = result.matched
+      .map((item) => item.name || item.phrase)
+      .filter(Boolean)
+      .join(', ');
+    const detail = names ? ` (${names})` : '';
+    return `${result.matched.length} symptom${result.matched.length === 1 ? '' : 's'} matched${detail}`;
+  }
+  if (result.candidates) {
+    const names = result.candidates
+      .map((item) => item.name)
+      .filter(Boolean)
+      .join(', ');
+    const detail = names ? ` (${names})` : '';
+    return `${result.candidates.length} candidate${result.candidates.length === 1 ? '' : 's'} ranked${detail}`;
+  }
   if (result.specialties) return result.specialties.map((item) => item.name).join(', ') || 'No specialty found';
   if (result.name) return result.name;
   if (result.error) return result.error;
