@@ -1,6 +1,15 @@
 """Unit tests for orchestration rules in the manual tool-calling loop."""
 
-from app.llm.loop import _defer_until_next_round, normalize_reply
+from app.llm.loop import (
+    _defer_until_next_round,
+    _merge_matched_symptoms,
+    normalize_reply,
+)
+
+
+class _Call:
+    def __init__(self, name):
+        self.name = name
 
 
 def test_diagnosis_waits_for_a_same_batch_symptom_search():
@@ -32,3 +41,33 @@ def test_normalize_reply_enforces_plain_text_and_final_disclaimer():
     )
     assert "**" not in reply
     assert ", and" not in reply
+
+
+def test_empty_follow_up_search_keeps_previous_symptoms():
+    active = ["headache"]
+    assert not _merge_matched_symptoms(
+        active,
+        [_Call("search_symptoms")],
+        [{"matched": [], "unmatched": [{"phrase": "no"}]}],
+    )
+    assert active == ["headache"]
+
+
+def test_search_with_a_match_can_continue_to_diagnosis():
+    active = ["headache"]
+    assert _merge_matched_symptoms(
+        active,
+        [_Call("search_symptoms")],
+        [{"matched": [{"slug": "headache"}]}],
+    )
+    assert active == ["headache"]
+
+
+def test_new_symptoms_are_added_to_previous_positive_symptoms():
+    active = ["headache"]
+    assert _merge_matched_symptoms(
+        active,
+        [_Call("search_symptoms")],
+        [{"matched": [{"slug": "high-fever"}]}],
+    )
+    assert active == ["headache", "high-fever"]

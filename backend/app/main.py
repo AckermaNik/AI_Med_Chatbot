@@ -30,6 +30,7 @@ class Conversation:
     """Server-side state for one browser chat session."""
 
     history: list[types.Content] = field(default_factory=list)
+    active_symptoms: list[str] = field(default_factory=list)
     lock: asyncio.Lock = field(default_factory=asyncio.Lock)
 
 
@@ -127,6 +128,7 @@ async def chat(request: ChatRequest) -> StreamingResponse:
                     app.state.gemini_client,
                     conversation.history,
                     message,
+                    active_symptoms=conversation.active_symptoms,
                 ):
                     yield sse_event(event.kind, event_payload(event))
         yield sse_event("done", {"session_id": session_id})

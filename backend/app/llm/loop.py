@@ -41,6 +41,14 @@ from app.llm.tools import dispatch, tool_config
 # It prevents an accidental infinite loop if the model keeps asking for tools.
 MAX_TOOL_STEPS = 10
 DISCLAIMER = "This is not a substitute for a real medical assessment."
+NO_SYMPTOM_MATCH_REPLY = (
+    "I could not match a symptom in that message. Please describe what you are "
+    "experiencing, including where it is and when it started."
+)
+NO_NEW_SYMPTOM_REPLY = (
+    "Understood. I will keep the previous possible matches in mind. Tell me if "
+    "you notice another symptom or have more information to add."
+)
 
 # Short conversational replies do not contain symptoms and should not trigger
 # the expensive LLM -> matcher -> embedding pipeline.
@@ -166,12 +174,35 @@ def _defer_until_next_round(name: str, batch_names: set[str]) -> bool:
     A result does not exist until the current batch has finished, so a dependent
     tool must wait for Gemini's next response.
     """
+    # A symptom search establishes the current-turn input. Hold every other
+    # tool until its result is known so an empty search can end the turn without
+    # executing or displaying downstream tools.
+    if name != "search_symptoms" and "search_symptoms" in batch_names:
+        return True
+
     dependencies = {
         "diagnose": {"search_symptoms"},
         "get_disease_info": {"diagnose"},
         "recommend_specialty": {"search_symptoms", "diagnose"},
     }
     return bool(dependencies.get(name, set()) & batch_names)
+
+
+def _merge_matched_symptoms(
+    active_symptoms: list[str], calls: list[Any], results: list[dict[str, Any]]
+) -> bool:
+    """Keep positive symptoms across follow-up turns and report new matches."""
+    matched = [
+        item.get("slug")
+        for call, result in zip(calls, results)
+        if call.name == "search_symptoms"
+        for item in result.get("matched") or []
+        if item.get("slug")
+    ]
+    for slug in matched:
+        if slug not in active_symptoms:
+            active_symptoms.append(slug)
+    return bool(matched)
 
 
 async def _dispatch_in_batch(
@@ -196,6 +227,7 @@ async def run_turn(
     client: genai.Client,
     history: list[types.Content],
     message: str,
+    active_symptoms: list[str] | None = None,
 ) -> AsyncIterator[Event]:
     """Run one user message through the model-and-tools loop.
 
@@ -205,6 +237,7 @@ async def run_turn(
     """
     settings = get_settings()  # API model name and other application settings.
     config = tool_config()  # Gemini tool declarations and system prompt.
+    active_symptoms = active_symptoms if active_symptoms is not None else []
     history.append(user_turn(message))  # Add this new message before asking Gemini.
 
     turn = Turn()  # Temporary Object to collect all activity and the final reply for this message.
@@ -282,25 +315,34 @@ async def run_turn(
         history.append(response.candidates[0].content)
 
         batch_names = {call.name for call in calls}  # Names requested in this response.
+        effective_args: list[dict[str, Any]] = []
         for call in calls:
+            args = dict(call.args or {})
+            # The model may repeat or omit old symptom slugs while answering a
+            # follow-up. The server-owned positive symptom state is authoritative.
+            if call.name in {"diagnose", "recommend_specialty"} and active_symptoms:
+                args["symptom_slugs"] = list(active_symptoms)
+            effective_args.append(args)
             # Emit each request before running it so a UI can show activity early.
-            yield Event("tool_call", ToolCall(name=call.name, args=dict(call.args or {})))
+            if not _defer_until_next_round(call.name, batch_names):
+                yield Event("tool_call", ToolCall(name=call.name, args=args))
 
         # Calls with no data dependency run together. A tool that needs a result
         # from this batch is deferred until Gemini has received that result.
         results = await asyncio.gather(
             *(
-                _dispatch_in_batch(session, c.name, dict(c.args or {}), batch_names)
-                for c in calls
+                _dispatch_in_batch(session, c.name, args, batch_names)
+                for c, args in zip(calls, effective_args)
             )
         )
 
         parts: list[types.Part] = []  # Function-response parts sent back to Gemini.
-        for call, result in zip(calls, results):
+        for index, (call, result) in enumerate(zip(calls, results)):
             # Pair each result with the corresponding request in the same order.
-            record = ToolCall(name=call.name, args=dict(call.args or {}), result=result)
-            turn.tool_calls.append(record)  # Retain it in the completed-turn record.
-            yield Event("tool_result", record)  # Allow the caller to render the trace.
+            record = ToolCall(name=call.name, args=effective_args[index], result=result)
+            if not _defer_until_next_round(call.name, batch_names):
+                turn.tool_calls.append(record)  # Retain it in the completed-turn record.
+                yield Event("tool_result", record)  # Allow the caller to render the trace.
 
             # Escalations are emitted as their own event, not left to the model to
             # relay. If the model ignores or softens the warning, the user still
@@ -318,6 +360,23 @@ async def run_turn(
             parts.append(
                 types.Part.from_function_response(name=call.name, response=result)
             )  # Convert ordinary Python data to Gemini's tool-response format.
+
+        # A negative answer to a follow-up question is not a new symptom, but it
+        # also does not invalidate the positive symptoms already reported. Keep
+        # those symptoms available so prior possible conditions remain possible.
+        has_search = any(call.name == "search_symptoms" for call in calls)
+        new_symptom_found = _merge_matched_symptoms(active_symptoms, calls, results)
+        if has_search and not new_symptom_found:
+            reply = NO_NEW_SYMPTOM_REPLY if active_symptoms else NO_SYMPTOM_MATCH_REPLY
+            history.append(types.Content(role="user", parts=parts))
+            history.append(
+                types.Content(
+                    role="model",
+                    parts=[types.Part(text=reply)],
+                )
+            )
+            yield Event("message", Turn(text=reply))
+            return
 
         # Function responses go back under role="user". It reads oddly; it is what
         # the API expects.
