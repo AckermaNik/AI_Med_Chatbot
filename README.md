@@ -203,14 +203,17 @@ load.py performs quality gates before inserting data. The pipeline is intended t
 1. The backend receives the message and browser session ID.
 2. Red-flag phrases are checked against the database before Gemini is called.
 3. Gemini receives the conversation and four tool declarations.
-4. search_symptoms extracts individual symptom phrases and resolves canonical symptom names.
-5. diagnose ranks candidate conditions using the deterministic scorer.
-6. get_disease_info can provide a condition description and precautions.
-7. recommend_specialty uses curated disease mappings, body-system routing, then General Practice fallback.
-8. Tool calls and results are streamed to the browser.
-9. Gemini writes a plain-text response from the tool results; the disclaimer is enforced.
+4. search_symptoms extracts individual symptom phrases and resolves them to canonical symptom names (and internal database identifiers).
+5. The server keeps matched positive symptoms in the chat session and supplies the canonical names to diagnose and recommend_specialty on later tool calls.
+6. diagnose ranks candidate conditions using the deterministic scorer.
+7. get_disease_info can provide a condition description and precautions.
+8. recommend_specialty uses curated disease mappings, body-system routing, then General Practice fallback.
+9. Tool calls and results are streamed to the browser and shown in a collapsible trace. The trace clears when the chatbot reply is rendered.
+10. Gemini writes a plain-text response from the tool results; the disclaimer is enforced. If a user clarifies that a previously reported symptom was a joke, the assistant is prompted to acknowledge that warmly and express relief.
 
 Independent tool calls run concurrently. Same-batch dependent calls are deferred until their inputs exist, and the loop stops after ten tool rounds.
+
+Matched symptoms currently persist across messages in the same chat session. They can therefore be included in a later diagnosis even if the user has moved to a different question. Starting a new session clears this in-memory state.
 
 ## API
 
@@ -242,9 +245,11 @@ message must contain 1–4,000 characters. The response is an SSE stream with th
 | alert | Deterministic urgent or emergency escalation |
 | message | Final assistant text |
 | error | User-facing model or processing error |
-| done | Returns the session ID for later turns |
+| done | Signals that the event stream has ended and returns the session ID for later turns |
 
 The browser stores the returned ID in local storage. Conversation history is currently kept in backend process memory; it is not a durable multi-user conversation store.
+
+The `done` event marks the end of the stream; it does not by itself guarantee that Gemini produced a final reply. For example, the backend may end a turn after emitting an alert or an error.
 
 ## Configuration
 
