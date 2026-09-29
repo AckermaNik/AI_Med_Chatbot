@@ -23,7 +23,7 @@ from app.db import SessionLocal, engine  # noqa: E402
 from app.engine.repository import (  # noqa: E402
     diagnose,
     recommend_specialty,
-    resolve_slugs,
+    resolve_names,
 )
 from app.engine.safety import check_red_flags  # noqa: E402
 
@@ -45,7 +45,7 @@ async def main() -> int:
         config.top_k = args.top_k
 
     async with SessionLocal() as session:
-        found = await resolve_slugs(session, args.slugs)
+        found = await resolve_names(session, args.slugs)
         missing = [s for s in args.slugs if s not in found]
         if missing:
             print(f"unknown symptom slug(s): {', '.join(missing)}")

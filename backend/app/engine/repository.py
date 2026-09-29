@@ -87,15 +87,19 @@ async def load_candidates(
     ]
 
 
-async def resolve_slugs(session: AsyncSession, slugs: list[str]) -> dict[str, int]:
-    """slug -> symptom id. Unknown slugs are simply absent from the result."""
-    if not slugs:
+async def resolve_names(session: AsyncSession, names: list[str]) -> dict[str, int]:
+    """canonical symptom name -> symptom id.
+
+    Unknown names are simply absent from the result. The LLM-facing tools use
+    canonical names; database slugs remain internal stable identifiers.
+    """
+    if not names:
         return {}
     rows = await session.execute(
-        text("SELECT slug, id FROM symptom WHERE slug = ANY(:slugs)"),
-        {"slugs": slugs},
+        text("SELECT canonical_name, id FROM symptom WHERE canonical_name = ANY(:names)"),
+        {"names": names},
     )
-    return {r.slug: r.id for r in rows}
+    return {r.canonical_name: r.id for r in rows}
 
 
 @dataclass(frozen=True)
@@ -197,6 +201,6 @@ async def diagnose(
     config: ScoringConfig | None = None,
 ) -> Ranking:
     config = config or get_settings().scoring
-    symptoms = await load_symptoms(session)
-    profiles = await load_candidates(session, symptom_ids)
+    symptoms = await load_symptoms(session) #load ALL symptoms of the dataset
+    profiles = await load_candidates(session, symptom_ids) # load disease candidates based on user's symptoms
     return rank(symptom_ids, profiles, symptoms, config)

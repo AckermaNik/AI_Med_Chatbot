@@ -303,7 +303,7 @@ def reconcile(vocab: Vocabulary) -> Vocabulary:
         )
         if not hit:
             continue
-        match, token_set, _ = hit # match -> the actual string from the targets list (Dataset A)
+        match, similarity, _ = hit # match -> the actual string from the targets list (Dataset A)
 
         a_words, b_words = set(match.split()), set(candidate.split())
         relation = "subset" if (a_words <= b_words or b_words <= a_words) else "variant"
@@ -314,7 +314,7 @@ def reconcile(vocab: Vocabulary) -> Vocabulary:
             Proposal(
                 canonical=match,
                 alias=candidate,
-                token_set=token_set,
+                token_set=similarity,
                 ratio=fuzz.ratio(match, candidate),
                 relation=relation,
                 verdict=verdict,

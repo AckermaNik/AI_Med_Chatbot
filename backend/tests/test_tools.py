@@ -58,4 +58,4 @@ def test_required_fields_are_marked():
     from app.llm.tools import DiagnoseArgs
 
     flat = flatten_schema(DiagnoseArgs.model_json_schema())
-    assert flat["required"] == ["symptom_slugs"]
+    assert flat["required"] == ["symptom_names"]

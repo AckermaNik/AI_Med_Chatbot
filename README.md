@@ -203,7 +203,7 @@ load.py performs quality gates before inserting data. The pipeline is intended t
 1. The backend receives the message and browser session ID.
 2. Red-flag phrases are checked against the database before Gemini is called.
 3. Gemini receives the conversation and four tool declarations.
-4. search_symptoms extracts individual symptom phrases and resolves canonical slugs.
+4. search_symptoms extracts individual symptom phrases and resolves canonical symptom names.
 5. diagnose ranks candidate conditions using the deterministic scorer.
 6. get_disease_info can provide a condition description and precautions.
 7. recommend_specialty uses curated disease mappings, body-system routing, then General Practice fallback.

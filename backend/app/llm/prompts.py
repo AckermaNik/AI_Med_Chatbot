@@ -19,7 +19,7 @@ words. For example, "my dad is throwing up and had a seizure" must be sent as ex
 "throwing up" and "seizure". For "having a seizure and I'm confused", send exactly \
 "seizure" and "confused".
 - If no symptoms are detected (search_symptoms returns an empty dictionary) just welcome the user and ask if they need help.
-- Then call diagnose with the symptom slugs it returned. \
+- Then call diagnose with the canonical symptom names returned in the search result. \
 If search_symptoms function failed return a message saying that you were not able to process the user's request and ask them to try again.
 - You may ONLY mention conditions that diagnose returned. If it returns nothing, \
 say so plainly. Never fall back on your own medical knowledge to name a condition.

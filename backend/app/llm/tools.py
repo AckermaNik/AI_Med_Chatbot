@@ -17,7 +17,7 @@ from sqlalchemy import text
 from app.config import get_settings
 from app.engine.matching import match_phrases
 from app.engine.repository import diagnose as run_diagnose
-from app.engine.repository import recommend_specialty, resolve_slugs
+from app.engine.repository import recommend_specialty, resolve_names
 from app.engine.safety import check_red_flags
 from app.llm.schema import flatten_schema
 from app.llm.prompts import SYSTEM_PROMPT
@@ -43,8 +43,8 @@ class SearchSymptomsArgs(BaseModel):
 
 
 class DiagnoseArgs(BaseModel):
-    symptom_slugs: list[str] = Field(
-        description="Canonical symptom slugs returned by search_symptoms."
+    symptom_names: list[str] = Field(
+        description="Canonical symptom names returned by search_symptoms."
     )
 
 
@@ -56,9 +56,9 @@ class SpecialtyArgs(BaseModel):
     disease_slug: str | None = Field(
         default=None, description="Disease slug returned by diagnose, if known."
     )
-    symptom_slugs: list[str] = Field(
+    symptom_names: list[str] = Field(
         default_factory=list,
-        description="Reported symptom slugs, used if no disease is confident.",
+        description="Reported canonical symptom names, used if no disease is confident.",
     )
 
 
@@ -98,13 +98,13 @@ async def search_symptoms(session: AsyncSession, args: SearchSymptomsArgs) -> di
 
 
 async def diagnose(session: AsyncSession, args: DiagnoseArgs) -> dict:
-    found = await resolve_slugs(session, args.symptom_slugs)
-    unknown = [s for s in args.symptom_slugs if s not in found]
+    found = await resolve_names(session, args.symptom_names)
+    unknown = [name for name in args.symptom_names if name not in found]
     if not found:
         return {
             "candidates": [],
-            "note": "None of those symptom slugs exist. Call search_symptoms first.",
-            "unknown_slugs": unknown,
+            "note": "None of those canonical symptom names exist. Call search_symptoms first.",
+            "unknown_names": unknown,
         }
 
     result = await run_diagnose(session, set(found.values()))
@@ -122,7 +122,7 @@ async def diagnose(session: AsyncSession, args: DiagnoseArgs) -> dict:
         ],
         "is_confident": result.is_confident,
         "discriminating_symptom": result.discriminating_symptom,
-        "unknown_slugs": unknown,
+        "unknown_names": unknown,
     }
 
 
@@ -163,7 +163,7 @@ async def get_disease_info(session: AsyncSession, args: DiseaseArgs) -> dict:
 async def recommend_specialty_tool(
     session: AsyncSession, args: SpecialtyArgs
 ) -> dict:
-    found = await resolve_slugs(session, args.symptom_slugs)
+    found = await resolve_names(session, args.symptom_names)
     advice = await recommend_specialty(
         session, args.disease_slug, set(found.values()) or None
     )

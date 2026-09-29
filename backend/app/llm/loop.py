@@ -166,9 +166,9 @@ def _defer_until_next_round(name: str, batch_names: set[str]) -> bool:
     Gemini may request several tools in one response. Those requests normally run
     concurrently, but the triage tools form a workflow:
 
-    * ``diagnose`` needs canonical slugs from ``search_symptoms``.
+    * ``diagnose`` needs canonical names from ``search_symptoms``.
     * ``get_disease_info`` needs a disease returned by ``diagnose``.
-    * ``recommend_specialty`` needs either search slugs for its fallback or a
+    * ``recommend_specialty`` needs either search names for its fallback or a
       disease returned by ``diagnose``.
 
     A result does not exist until the current batch has finished, so a dependent
@@ -193,15 +193,15 @@ def _merge_matched_symptoms(
 ) -> bool:
     """Keep positive symptoms across follow-up turns and report new matches."""
     matched = [
-        item.get("slug")
+        item.get("name")
         for call, result in zip(calls, results)
         if call.name == "search_symptoms"
         for item in result.get("matched") or []
-        if item.get("slug")
+        if item.get("name")
     ]
-    for slug in matched:
-        if slug not in active_symptoms:
-            active_symptoms.append(slug)
+    for name in matched:
+        if name not in active_symptoms:
+            active_symptoms.append(name)
     return bool(matched)
 
 
@@ -318,17 +318,18 @@ async def run_turn(
         effective_args: list[dict[str, Any]] = []
         for call in calls:
             args = dict(call.args or {})
-            # The model may repeat or omit old symptom slugs while answering a
+            # The model may repeat or omit old symptom names while answering a
             # follow-up. The server-owned positive symptom state is authoritative.
             if call.name in {"diagnose", "recommend_specialty"} and active_symptoms:
-                args["symptom_slugs"] = list(active_symptoms)
+                args["symptom_names"] = list(active_symptoms)
             effective_args.append(args)
             # Emit each request before running it so a UI can show activity early.
             if not _defer_until_next_round(call.name, batch_names):
                 yield Event("tool_call", ToolCall(name=call.name, args=args))
 
-        # Calls with no data dependency run together. A tool that needs a result
-        # from this batch is deferred until Gemini has received that result.
+        # Calls with no data dependency run together. 
+        # A tool that needs a result from this batch is deferred until Gemini has received that result.
+        # asyncio.gather guarantees the order of results to be according the calls order
         results = await asyncio.gather(
             *(
                 _dispatch_in_batch(session, c.name, args, batch_names)

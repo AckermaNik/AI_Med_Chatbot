@@ -98,7 +98,10 @@ export default function App() {
       return index < 0 ? current : current.map((item, itemIndex) => itemIndex === index ? { ...item, result: payload.result } : item);
     });
     else if (event === 'alert') addMessage({ sender: 'alert', alert: payload });
-    else if (event === 'message') addMessage({ sender: 'bot', text: payload.text });
+    else if (event === 'message') {
+      setActivity([]);
+      addMessage({ sender: 'bot', text: payload.text });
+    }
     else if (event === 'error') addMessage({ sender: 'bot', text: payload.message || 'The assistant could not complete that request.', isError: true });
     else if (event === 'done' && payload.session_id) localStorage.setItem(SESSION_KEY, payload.session_id);
   };

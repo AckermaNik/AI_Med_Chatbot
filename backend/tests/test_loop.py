@@ -44,30 +44,30 @@ def test_normalize_reply_enforces_plain_text_and_final_disclaimer():
 
 
 def test_empty_follow_up_search_keeps_previous_symptoms():
-    active = ["headache"]
+    active = ["Headache"]
     assert not _merge_matched_symptoms(
         active,
         [_Call("search_symptoms")],
         [{"matched": [], "unmatched": [{"phrase": "no"}]}],
     )
-    assert active == ["headache"]
+    assert active == ["Headache"]
 
 
 def test_search_with_a_match_can_continue_to_diagnosis():
-    active = ["headache"]
+    active = ["Headache"]
     assert _merge_matched_symptoms(
         active,
         [_Call("search_symptoms")],
-        [{"matched": [{"slug": "headache"}]}],
+        [{"matched": [{"name": "Headache"}]}],
     )
-    assert active == ["headache"]
+    assert active == ["Headache"]
 
 
 def test_new_symptoms_are_added_to_previous_positive_symptoms():
-    active = ["headache"]
+    active = ["Headache"]
     assert _merge_matched_symptoms(
         active,
         [_Call("search_symptoms")],
-        [{"matched": [{"slug": "high-fever"}]}],
+        [{"matched": [{"name": "High fever"}]}],
     )
-    assert active == ["headache", "high-fever"]
+    assert active == ["Headache", "High fever"]

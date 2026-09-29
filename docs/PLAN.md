@@ -530,9 +530,9 @@ sends *and* generate the JSON schema Gemini receives.
 | Tool | Arguments | Returns |
 |---|---|---|
 | `search_symptoms` | `phrases: list[str]` | per phrase: matched canonical symptoms + confidence, or `null` if nothing cleared threshold |
-| `diagnose` | `symptom_slugs: list[str]`, `top_k: int = 5` | ranked candidates w/ score, matched, missing_key, urgency, plus `discriminating_symptom` |
+| `diagnose` | `symptom_names: list[str]`, `top_k: int = 5` | ranked candidates w/ score, matched, missing_key, urgency, plus `discriminating_symptom` |
 | `get_disease_info` | `disease_slug: str` | description, precautions, symptom profile |
-| `recommend_specialty` | `disease_slug: str \| null`, `symptom_slugs: list[str]` | specialty name, description, `mapping_source` |
+| `recommend_specialty` | `disease_slug: str \| null`, `symptom_names: list[str]` | specialty name, description, `mapping_source` |
 
 ### Why specialty is keyed on disease, not symptom
 
