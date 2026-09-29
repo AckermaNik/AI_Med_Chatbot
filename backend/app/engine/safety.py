@@ -46,6 +46,12 @@ TEXT_SYMPTOM_PATTERNS = {
     "stiff-neck": (r"\bstiff neck\b",),
     "high-fever": (r"\bhigh fever\b", r"\bvery high fever\b"),
     "vomiting-blood": (r"\bvomit(?:ing)? blood\b", r"\bthrowing up blood\b"),
+    "hemoptysis": (
+        r"\bspit(?:ting)? blood\b",
+        r"\bcough(?:ing)?(?: up)? blood\b",
+        r"\bblood in (?:my|the) sputum\b",
+        r"\bbloody sputum\b",
+    ),
 }
 
 
